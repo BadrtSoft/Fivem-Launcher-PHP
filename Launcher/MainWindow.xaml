@@ -5,7 +5,7 @@
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         xmlns:local="clr-namespace:Launcher"
         mc:Ignorable="d"
-        Title="GormYa Launcher" Height="420" Width="797" MaxHeight="725" MaxWidth="1375" WindowStartupLocation="CenterScreen" ResizeMode="NoResize" WindowStyle="None" Loaded="Window_Loaded" Closing="Window_Closing">
+        Title="GormYa Launcher" Height="420" Width="797" MaxHeight="725" MaxWidth="1375" WindowStartupLocation="CenterScreen" ResizeMode="NoResize" WindowStyle="None" Loaded="Window_Loaded" Closing="Window_Closing" Background="ForestGreen">
     <!--<Window.Background>
         <ImageBrush ImageSource="background.png" Stretch="UniformToFill" />
     </Window.Background>-->

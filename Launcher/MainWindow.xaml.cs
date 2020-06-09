@@ -140,14 +140,24 @@ namespace Launcher
         {
             Task.Run(() =>
             {
-                using (var webClient = new WebClient())
+                try
                 {
-                    webClient.DownloadStringTaskAsync(new Uri("https://servers-frontend.fivem.net/api/servers/single/" + _varsObject.ServerCode))
-                        .ContinueWith(task =>
-                        {
-                            var obj = JsonConvert.DeserializeObject<FivemApi>(task.Result);
-                            Dispatcher.Invoke(delegate { LblOnline.Content = $"Online: {obj.Data.Clients}"; });
-                        });
+                    if (string.IsNullOrEmpty(_varsObject.ServerCode)) return;
+
+                    using (var webClient = new WebClient())
+                    {
+                        webClient.DownloadStringTaskAsync(new Uri(
+                                "https://servers-frontend.fivem.net/api/servers/single/" + _varsObject.ServerCode))
+                            .ContinueWith(task =>
+                            {
+                                var obj = JsonConvert.DeserializeObject<FivemApi>(task.Result);
+                                Dispatcher.Invoke(delegate { LblOnline.Content = $"Online: {obj.Data.Clients}"; });
+                            });
+                    }
+                }
+                catch
+                {
+                    // ignored
                 }
             });
 
