@@ -1,3 +1,3 @@
 # Fivem-Launcher
 
-Launcher çalıştırmadan girilmemesi için PHP ve Lua kısımları gerekmektedir. İleride bunları da paylaşacağım.
+Launcher çalıştırmadan oyuna girilmemesi için PHP ve Lua kısımları gerekmektedir. İleride bunları da paylaşacağım.
