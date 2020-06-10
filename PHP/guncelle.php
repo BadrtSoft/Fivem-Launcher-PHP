@@ -48,10 +48,17 @@ if ($stmt = $conn->prepare("SELECT login_date, ip_address, status FROM LauncherS
 		}
 	}
 	else {
-		$query = $conn->prepare("UPDATE LauncherStatuses SET login_date=NOW(), ip_address=?, status=?");
-		$query->bind_param('ss', $ip, $_GET['durum']);
-		$query->execute();
-		$query->close();
+		if ($status == -1) { // eger oyundaysa ip adresini degistirmiyoruz ki, 2 kisi ayni anda giremesin
+			$query = $conn->prepare("UPDATE LauncherStatuses SET login_date=NOW(), status=?");
+			$query->bind_param('s', $_GET['durum']);
+			$query->execute();
+			$query->close();	
+		} else {
+			$query = $conn->prepare("UPDATE LauncherStatuses SET login_date=NOW(), ip_address=?, status=?");
+			$query->bind_param('ss', $ip, $_GET['durum']);
+			$query->execute();
+			$query->close();
+		}
 		
 		echo $_GET['durum'];
 	}

@@ -19,6 +19,7 @@ namespace Launcher
     {
         private const string LauncherUpdateURL = "https://yalc.in/fivem_launcher/update.php";
         private const string ServerUpdateURL = "https://yalc.in/fivem_launcher/guncelle.php";
+        private const string ServerCheckURL = "https://yalc.in/fivem_launcher/kontrol.php";
         private const string SteamProxyURL = "https://yalc.in/fivem_launcher/steamProxy.php";
 
         private int _kontrolEdilen;
@@ -148,14 +149,31 @@ namespace Launcher
             // Hile koruması
             CheatProgramlariniKapat(null, null);
 
-            // 30 saniyede bir hile korumasını çalıştır
-            var timer = new DispatcherTimer { Interval = TimeSpan.FromSeconds(30) };
+            // 25 saniyede bir hile korumasını çalıştır
+            var timer = new DispatcherTimer { Interval = TimeSpan.FromSeconds(25) };
             timer.Tick += CheatProgramlariniKapat;
             timer.Start();
         }
 
         private void CheatProgramlariniKapat(object sender, EventArgs e)
         {
+            // Durum guncelle (tarih guncellesin ki, server.lua oyundan atmasin)
+            Task.Run(() =>
+            {
+                try
+                {
+                    using (var webClient = new WebClient())
+                    {
+                        var durum = webClient.DownloadString($"{ServerCheckURL}?steamid={_steamHex}");
+                        webClient.UploadString($"{ServerUpdateURL}?steamid={_steamHex}&durum={durum}", "POST", $"steamid={_steamHex}&durum={durum}");
+                    }
+                }
+                catch
+                {
+                    // ignored
+                }
+            });
+
             // Online sayısını güncelle
             if (!string.IsNullOrEmpty(_updateObject.ServerCode))
             {
