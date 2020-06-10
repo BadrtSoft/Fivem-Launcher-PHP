@@ -24,7 +24,7 @@ namespace Launcher
         private string _steamHex;
         private VarsObject _varsObject;
         private readonly bool _isLocal;
-        private bool steamAcik = false;
+        private bool _steamAcik;
 
         public MainWindow()
         {
@@ -62,7 +62,7 @@ namespace Launcher
                 }
                 else
                 {
-                    steamAcik = true;
+                    _steamAcik = true;
 
                     try
                     {
@@ -80,6 +80,8 @@ namespace Launcher
                     {
                         var response = webClient.DownloadString("https://yalc.in/fivem_launcher/vars.php");
                         _varsObject = JsonConvert.DeserializeObject<VarsObject>(response);
+
+                        if (string.IsNullOrEmpty(_varsObject?.ServerCode)) LblOnline.Visibility = Visibility.Collapsed;
                     }
 
                     if (!_isLocal)
@@ -273,7 +275,7 @@ namespace Launcher
                 // ignored
             }
 
-            if (!steamAcik) return;
+            if (!_steamAcik) return;
 
             try
             {

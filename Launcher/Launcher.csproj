@@ -159,6 +159,7 @@
   <ItemGroup>
     <Resource Include="close_white.png" />
     <Resource Include="close.png" />
+    <Resource Include="bg.jpg" />
     <Content Include="SharedInfo.tt">
       <Generator>TextTemplatingFileGenerator</Generator>
       <LastGenOutput>SharedInfo.cs</LastGenOutput>
