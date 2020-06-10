@@ -1,8 +1,32 @@
 ﻿using System;
+using System.Diagnostics;
+using System.Linq;
+using Microsoft.Win32;
 using Newtonsoft.Json;
 
 namespace Launcher
 {
+    public static class SteamManager
+    {
+        public static string GetSteamID3()
+        {
+            try
+            {
+                return Registry.CurrentUser.OpenSubKey("Software")?.OpenSubKey("Valve")?.OpenSubKey("Steam")?.OpenSubKey("ActiveProcess")?.GetValue("ActiveUser")?.ToString() ?? "0";
+            }
+            catch
+            {
+                return "0";
+                // ignored
+            }
+        }
+
+        public static bool IsRunning()
+        {
+            return Process.GetProcessesByName("steam").Any();
+        }
+    }
+
     public partial class SteamApi
     {
         [JsonProperty("response")]

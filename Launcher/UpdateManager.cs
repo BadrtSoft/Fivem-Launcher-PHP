@@ -21,27 +21,21 @@ namespace Launcher
             UpdateURL = updateUrl;
         }
 
-        public async Task<UpdateObject> CheckUpdate(string currentVersion)
+        public async Task<UpdateObject> CheckUpdate()
         {
             using (var webClient = new WebClient())
             {
                 var response = await webClient.DownloadStringTaskAsync(UpdateURL);
                 var updateObject = JsonConvert.DeserializeObject<UpdateObject>(response);
 
-                if (updateObject.Version != currentVersion)
-                {
-                    UpdateResponse = updateObject;
-                    return updateObject;
-                }
+                UpdateResponse = updateObject;
+                return UpdateResponse;
             }
-
-            UpdateResponse = null;
-            return null;
         }
 
         public async Task<bool> DownloadUpdate(string fullExePath)
         {
-            var fileList = new[] { UpdateResponse.File };
+            var fileList = new[] { UpdateResponse.UpdateFile };
             var downloadedFiles = new List<string>();
 
             Location = fullExePath;

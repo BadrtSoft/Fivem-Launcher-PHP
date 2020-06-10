@@ -1,1 +1,0 @@
-{ "server": "127.0.0.1:30120", "discord": "https://discord.gg/e9URnEe", "teamspeak": "teamspeakserver", "server_code": "" }

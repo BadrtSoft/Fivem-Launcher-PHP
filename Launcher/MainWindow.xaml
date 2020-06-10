@@ -10,28 +10,28 @@
         <ImageBrush ImageSource="bg.jpg" Stretch="UniformToFill" />
     </Window.Background>
     <Grid Loaded="Grid_Loaded">
-        <Button x:Name="BtnDiscord" Content="Discord" HorizontalAlignment="Left" Height="34" Margin="537,279,0,0" VerticalAlignment="Top" Width="119" Click="btnDiscord_Click" FontWeight="Bold" BorderBrush="White">
+        <Button x:Name="BtnDiscord" Content="Discord" HorizontalAlignment="Left" Height="34" Margin="537,279,0,0" VerticalAlignment="Top" Width="119" Click="btnDiscord_Click" FontWeight="Bold" BorderBrush="White" Visibility="Collapsed">
             <Button.Resources>
                 <Style TargetType="Border">
                     <Setter Property="CornerRadius" Value="5"/>
                 </Style>
             </Button.Resources>
         </Button>
-        <Button x:Name="BtnTeamspeak" Content="Teamspeak" HorizontalAlignment="Left" Height="34" Margin="660,279,0,0" VerticalAlignment="Top" Width="119" Click="btnTeamspeak_Click" FontWeight="Bold" BorderBrush="White">
+        <Button x:Name="BtnTeamspeak" Content="Teamspeak" HorizontalAlignment="Left" Height="34" Margin="660,279,0,0" VerticalAlignment="Top" Width="119" Click="btnTeamspeak_Click" FontWeight="Bold" BorderBrush="White" Visibility="Collapsed">
             <Button.Resources>
                 <Style TargetType="{x:Type Border}">
                     <Setter Property="CornerRadius" Value="5"/>
                 </Style>
             </Button.Resources>
         </Button>
-        <Button x:Name="BtnLaunch" Content="Oyuna Giriş Yap" HorizontalAlignment="Left" Height="69" Margin="537,320,0,0" VerticalAlignment="Top" Width="243" Click="btnLaunch_Click" FontWeight="Bold" FontSize="20" BorderBrush="White">
+        <Button x:Name="BtnLaunch" Content="Oyuna Giriş Yap" HorizontalAlignment="Left" Height="69" Margin="537,320,0,0" VerticalAlignment="Top" Width="243" Click="btnLaunch_Click" FontWeight="Bold" FontSize="20" BorderBrush="White" Visibility="Collapsed">
             <Button.Resources>
                 <Style TargetType="{x:Type Border}">
                     <Setter Property="CornerRadius" Value="5"/>
                 </Style>
             </Button.Resources>
         </Button>
-        <Label x:Name="LblOnline" Content="Online: 0" HorizontalAlignment="Left" Margin="3,3,0,0" VerticalAlignment="Top" Foreground="White" FontWeight="Bold" FontSize="22" Width="119"/>
+        <Label x:Name="LblOnline" Content="Online: 0" HorizontalAlignment="Left" Margin="3,3,0,0" VerticalAlignment="Top" Foreground="White" FontWeight="Bold" FontSize="22" Width="119" Visibility="Collapsed"/>
 
         <Button x:Name="BtnClose" HorizontalAlignment="Left" Margin="745,7,0,0" VerticalAlignment="Top" Width="45" Height="45" Click="btnClose_Click" RenderTransformOrigin="0.967,0.566" Style="{DynamicResource CloseButtonStyle}" BorderThickness="0" >
             <Button.Resources>

@@ -105,7 +105,6 @@
     <Compile Include="SteamID.cs" />
     <Compile Include="UpdateManager.cs" />
     <Compile Include="UpdateObject.cs" />
-    <Compile Include="VarsObject.cs" />
     <Page Include="MainWindow.xaml">
       <Generator>MSBuild:Compile</Generator>
       <SubType>Designer</SubType>
