@@ -1,0 +1,1 @@
+{ "version": "2020.6.4.1928", "file": "https://yalc.in/fivem_launcher/update.zip" }
