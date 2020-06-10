@@ -7,6 +7,7 @@
 - PHP klasorundeki update.php dosyasina sunucu bilgilerini girin  
 - PHP klasorundeki steamProxy.php dosyasina Steam API anahtarini girin  
 - PHP dosyalarini Fivem sunucunuzda ilgili yerlere atabilirsiniz veya ayri bir hosting uzerinde barindirabilirsiniz  
+- PHP klasorundaki SQL dosyasi ile veritabani tablolarinizi olusturun  
 - LauncherKontrol klasorundeki server.lua dosyasi icerisindeki linkleri kendi PHP sunucunuza gore ayarlayin  
 - LauncherKontrol klasorunu resources klasorunuze kopyalayin ve config dosyasindan start verin  
   
