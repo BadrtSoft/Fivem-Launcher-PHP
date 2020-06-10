@@ -157,15 +157,17 @@ namespace Launcher
         private void CheatProgramlariniKapat(object sender, EventArgs e)
         {
             // Online sayısını güncelle
-            Task.Run(() =>
+            if (!string.IsNullOrEmpty(_updateObject.ServerCode))
             {
-                try
+                Task.Run(() =>
                 {
-                    if (!string.IsNullOrEmpty(_updateObject.ServerCode))
+                    try
                     {
                         using (var webClient = new WebClient())
                         {
-                            webClient.DownloadStringTaskAsync(new Uri("https://servers-frontend.fivem.net/api/servers/single/" + _updateObject.ServerCode))
+                            webClient.DownloadStringTaskAsync(new Uri(
+                                    "https://servers-frontend.fivem.net/api/servers/single/" +
+                                    _updateObject.ServerCode))
                                 .ContinueWith(task =>
                                 {
                                     var obj = JsonConvert.DeserializeObject<FivemApi>(task.Result);
@@ -173,14 +175,12 @@ namespace Launcher
                                 });
                         }
                     }
-
-
-                }
-                catch
-                {
-                    // ignored
-                }
-            });
+                    catch
+                    {
+                        // ignored
+                    }
+                });
+            }
 
             // Hile isimlerini çek ve kill et
             Task.Run(() =>
