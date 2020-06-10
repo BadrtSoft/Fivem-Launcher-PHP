@@ -1,5 +1,18 @@
 # Fivem-Launcher  
   
+**Özellikleri**  
+- Launcher çalıştığı zaman hile programlarını kapatır. 25 saniyede bir düzenli olarak kontrol eder.  
+- Launcher kapandığında, Fivem'i de otomatik olarak kapatır.  
+- Steam'in açık olup olmadığını kontrol eder. Steam bilgilerini okur.  
+- Sunucu içeriisndeki online oyuncu sayısını gösterir.  
+- Otomatik güncelleme özelliği var. Oyunculara uzaktan güncelleme gönderebilirsiniz.  
+- Discord ve Teamspeak3 linklerinizi uzaktan yönetebilirsiniz.  
+- Renkli haritayı oyuncu bilgisayarına otomatik kopyalar. Bu sayede zoom yapıldığındaki hata giderilir.  
+- Kendi içerisinde whitelist barındırır. Dilerseniz bunu kullanabilir, dilerseniz kendi whitelist scriptinizi kullanabilirsiniz.  
+- PHP dosyalarını Fivem oyun sunucunuzda da çalıştırabilirsiniz, ayrı bir hosting üzerinde de çalıştırabilirsiniz.  
+- Oyuncuların ip adreslerini kayıt eder. PHP dosyaları cloudflare arkasında çalışsa da IP adresini doğru alır.  
+  
+  
 **Kurulum**
 - C# projesinde MainWindow.xaml.cs dosyasindaki 4 adet linki kendi sunucunuza gore degistirin  
 - C# projesinde dilerseniz background image degistirin ve Release modda derleyin  
@@ -10,6 +23,7 @@
 - PHP klasorundaki SQL dosyasi ile veritabani tablolarinizi olusturun  
 - LauncherKontrol klasorundeki server.lua dosyasi icerisindeki linkleri kendi PHP sunucunuza gore ayarlayin  
 - LauncherKontrol klasorunu resources klasorunuze kopyalayin ve config dosyasindan start verin  
+  
   
 **Yapılacaklar Yol Haritası:**  
 - SteamKit2 kodlarında kullanılmayan özellikler ve değişkenler silinecek  
