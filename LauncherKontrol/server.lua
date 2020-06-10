@@ -30,7 +30,7 @@ AddEventHandler("playerDropped", OnPlayerDrop)
 
 Citizen.CreateThread(function()
 	while true do
-		Citizen.Wait(30000)
+		Citizen.Wait(60000)
 		
 		identifiers = GetPlayerIdentifiers(source)
 		local hex = identifiers[1]
