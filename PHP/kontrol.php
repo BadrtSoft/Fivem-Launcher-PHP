@@ -31,7 +31,7 @@ if ($stmt = $conn->prepare("SELECT login_date, ip_address, status FROM LauncherS
 	}
 	else{
 		$ip = $_SERVER['REMOTE_ADDR'];
-		if ($use_cloudflare){
+		if ($use_cloudflare && isset($_SERVER['HTTP_CF_CONNECTING_IP'])){
 			$ip = $_SERVER['HTTP_CF_CONNECTING_IP'];
 		}
 		
