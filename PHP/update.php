@@ -1,5 +1,5 @@
 {
-	"version": "2020.6.10.515", 
+	"version": "2020.6.11.1818", 
 	"update_file": "https://yalc.in/fivem_launcher/update.zip",
 	"server": "127.0.0.1:30120", 
 	"discord": "https://discord.gg/e9URnEe", 
