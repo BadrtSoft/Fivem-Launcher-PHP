@@ -16,7 +16,7 @@ namespace Launcher
         [JsonProperty("discord")]
         public string Discord { get; set; }
 
-        [JsonProperty("teamspeak")]
+        [JsonProperty("teamspeak3")]
         public string Teamspeak3 { get; set; }
 
         [JsonProperty("server_code")]
