@@ -57,6 +57,7 @@ namespace Launcher
             if (args.Any(a => a.Equals("-updated")))
             {
                 MessageBox.Show("Launcher güncellendi!", "GormYa Launcher", MessageBoxButton.OK, MessageBoxImage.Information);
+                UpdateKontrolEdildi();
             }
             else
             {
