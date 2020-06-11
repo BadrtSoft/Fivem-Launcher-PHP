@@ -309,9 +309,9 @@ namespace Launcher
                     }
                 }
             }
-            catch
+            catch (Exception err)
             {
-                MessageBox.Show("Sunucu kaydınız yapılamadı. Daha sonra tekrar deneyin.");
+                MessageBox.Show($"Hata:{err.Message}");
             }
         }
 
