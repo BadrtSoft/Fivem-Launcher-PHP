@@ -77,6 +77,10 @@ namespace Launcher
                             MessageBox.Show("Launcher güncellenecektir. Kapatılıp açılırken lütfen bekleyiniz...", "GormYa Launcher", MessageBoxButton.OK, MessageBoxImage.Information);
                             await updater.InstallUpdate();
                         }
+                        else
+                        {
+                            Dispatcher.Invoke(UpdateKontrolEdildi);
+                        }
                     }
                     else
                     {
