@@ -4,7 +4,7 @@
 - Launcher çalıştığı zaman hile programlarını kapatır. 25 saniyede bir düzenli olarak kontrol eder.  
 - Launcher kapandığında, Fivem'i de otomatik olarak kapatır.  
 - Steam'in açık olup olmadığını kontrol eder. Steam bilgilerini okur.  
-- Sunucu içeriisndeki online oyuncu sayısını gösterir.  
+- Sunucu içerisindeki online oyuncu sayısını gösterir.  
 - Otomatik güncelleme özelliği var. Oyunculara uzaktan güncelleme gönderebilirsiniz.  
 - Discord ve Teamspeak3 linklerinizi uzaktan yönetebilirsiniz.  
 - Renkli haritayı oyuncu bilgisayarına otomatik kopyalar. Bu sayede zoom yapıldığındaki hata giderilir.  
@@ -15,10 +15,8 @@
   
 **Kurulum**
 - C# projesinde MainWindow.xaml.cs dosyasindaki 4 adet linki kendi sunucunuza gore degistirin  
-- C# projesinde dilerseniz background image degistirin ve Release modda derleyin  
-- PHP klasorundeki guncelle.php ve kontrol.php dosyalarinda veritabani bilgilerini girini cloudflare ve whitelist ayarlarini yapin  
-- PHP klasorundeki update.php dosyasina sunucu bilgilerini girin  
-- PHP klasorundeki steamProxy.php dosyasina Steam API anahtarini girin  
+- C# projesinde dilerseniz tasarimi degistirin ve Release modda derleyin  
+- PHP klasorundeki ayarlar.php dosyasinda bulunan ayarlari degistirin  
 - PHP dosyalarini Fivem sunucunuzda ilgili yerlere atabilirsiniz veya ayri bir hosting uzerinde barindirabilirsiniz  
 - PHP klasorundaki SQL dosyasi ile veritabani tablolarinizi olusturun  
 - LauncherKontrol klasorundeki server.lua dosyasi icerisindeki linkleri kendi PHP sunucunuza gore ayarlayin  

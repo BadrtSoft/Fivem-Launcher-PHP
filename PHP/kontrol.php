@@ -1,16 +1,11 @@
 <?php
-$servername     = "127.0.0.1"; // mysql server adresi
-$username       = "root"; // mysql kullanici adi
-$password       = "pass"; // mysql parolasi
-$dbname         = "database"; // mysql veritabani adi
-$use_cloudflare = false; // PHP dosyalari cloudflare arkasinda calisacaksa (domain uzerinden) burayi true yapin
-$use_whitelist  = false; // Whitelist icin LauncherStatuses tablosunu kullanacaksaniz burayi true yapin
+require 'ayarlar.php';
 
-if (!isset($_GET['steamid'])){
+if (empty($_GET['steamid'])){
 	die("-2");
 }
 
-$conn = new mysqli($servername, $username, $password, $dbname);
+$conn = new mysqli($db_addr, $db_user, $db_pass, $db_name);
 if (mysqli_connect_errno()) {
     die("-2");
 }
@@ -30,11 +25,6 @@ if ($stmt = $conn->prepare("SELECT login_date, ip_address, status FROM LauncherS
 		}
 	}
 	else{
-		$ip = $_SERVER['REMOTE_ADDR'];
-		if ($use_cloudflare && isset($_SERVER['HTTP_CF_CONNECTING_IP'])){
-			$ip = $_SERVER['HTTP_CF_CONNECTING_IP'];
-		}
-		
 		$date = new DateTime();
 		$date2 = new DateTime($login_date);
 		$seconds = $date->getTimestamp() - $date2->getTimestamp();

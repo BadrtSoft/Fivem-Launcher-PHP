@@ -1,6 +1,11 @@
 <?PHP
-$steamApiKey = 'STEAM API KEY YAZINIZ';
-$url = 'http://api.steampowered.com/ISteamUser/GetPlayerSummaries/v0002/?key=' . $steamApiKey . '&steamids=' . $_GET['id'];
+require 'ayarlar.php';
+
+if (!isset($_GET['id'])){
+	die('{}');
+}
+
+$url = 'http://api.steampowered.com/ISteamUser/GetPlayerSummaries/v0002/?key=' . $steam_api_key . '&steamids=' . $_GET['id'];
  
 $contents = file_get_contents($url);
 

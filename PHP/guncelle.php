@@ -1,16 +1,7 @@
 <?php
-$servername     = "127.0.0.1"; // mysql server adresi
-$username       = "root"; // mysql kullanici adi
-$password       = "pass"; // mysql parolasi
-$dbname         = "database"; // mysql veritabani adi
-$use_cloudflare = false; // PHP dosyalari cloudflare arkasinda calisacaksa (domain uzerinden) burayi true yapin
-$use_whitelist  = false; // Whitelist icin LauncherStatuses tablosunu kullanacaksaniz burayi true yapin
+require 'ayarlar.php';
 
-if (!isset($_GET['steamid'])){
-	die("-2");
-}
-
-if (!isset($_GET['durum'])){
+if (empty($_GET['steamid']) || !isset($_GET['durum'])){
 	die("-2");
 }
 
@@ -18,7 +9,7 @@ if ($_GET['durum'] != '-1' && $_GET['durum'] != '0' && $_GET['durum'] != '1'){
 	die("-2");
 }
 
-$conn = new mysqli($servername, $username, $password, $dbname);
+$conn = new mysqli($db_addr, $db_user, $db_pass, $db_name);
 if (mysqli_connect_errno()) {
     die("-2");
 }
@@ -29,11 +20,6 @@ if ($stmt = $conn->prepare("SELECT login_date, ip_address, status FROM LauncherS
 	$stmt->bind_result($login_date, $ip_address, $status);
 	$stmt->fetch();
 	$stmt->close();
-	
-	$ip = $_SERVER['REMOTE_ADDR'];
-	if ($use_cloudflare && isset($_SERVER['HTTP_CF_CONNECTING_IP'])){
-		$ip = $_SERVER['HTTP_CF_CONNECTING_IP'];
-	}
 	
 	if (!isset($status)){
 		if ($use_whitelist){
