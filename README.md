@@ -14,13 +14,13 @@
   
   
 **Kurulum**
-- C# projesinde *MainWindow.xaml.cs* dosyasindaki 4 adet linki kendi sunucunuza gore degistirin  
+- C# projesinde ***MainWindow.xaml.cs*** dosyasindaki 4 adet linki kendi sunucunuza gore degistirin  
 - C# projesinde dilerseniz tasarimi degistirin ve Release modda derleyin  
-- PHP klasorundeki *ayarlar.php* dosyasinda bulunan ayarlari degistirin  
-- PHP dosyalarini Fivem sunucunuzda ilgili yerlere (XAMPP Apache için muhtemelen *C:\xampp\htdocs* klasörü) atabilirsiniz veya ayri bir hosting uzerinde barindirabilirsiniz  
-- PHP klasorundaki *LauncherStatuses.sql* SQL dosyasi ile veritabani tablolarinizi olusturun  
-- LauncherKontrol klasorundeki *server.lua* dosyasi icerisindeki linkleri kendi PHP sunucunuza gore ayarlayin  
-- *LauncherKontrol* klasorunu *resources* klasorunuze kopyalayin ve *config* dosyanizdan start verin  
+- PHP klasorundeki ***ayarlar.php*** dosyasinda bulunan ayarlari degistirin  
+- PHP dosyalarini Fivem sunucunuzda ilgili yerlere (XAMPP Apache için muhtemelen ***C:\xampp\htdocs*** klasörü) atabilirsiniz veya ayri bir hosting uzerinde barindirabilirsiniz  
+- PHP klasorundaki ***LauncherStatuses.sql*** SQL dosyasi ile veritabani tablolarinizi olusturun  
+- LauncherKontrol klasorundeki ***server.lua*** dosyasi icerisindeki linkleri kendi PHP sunucunuza gore ayarlayin  
+- ***LauncherKontrol*** klasorunu ***resources*** klasorunuze kopyalayin ve *config* dosyanizdan start verin  
   
   
 **Yapılacaklar Yol Haritası:**  
