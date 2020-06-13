@@ -4,6 +4,7 @@ using System.IO;
 using System.Linq;
 using System.Net;
 using System.Reflection;
+using System.Threading;
 using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Threading;
@@ -133,18 +134,49 @@ namespace Launcher
 
         private void UpdateKontrolEdildi()
         {
+            bool steamYeniAcildi = false;
             // Steam çalışıyor mu kontrol et
             _steamAcik = SteamManager.IsRunning();
             if (!_steamAcik)
             {
-                ShowError("Oyuna bağlanabilmek için Steam açmalısın!");
-                return;
+                if (MessageBox.Show($"Steam açık değil ve bu şekilde sunucuya bağlanamazsın.{Environment.NewLine}Açmamı ister misin?", "GormYa Launcher", MessageBoxButton.YesNo, MessageBoxImage.Question) == MessageBoxResult.Yes)
+                {
+                    if (SteamManager.RunSteam())
+                    {
+                        steamYeniAcildi = true;
+                    }
+                    else
+                    {
+                        ShowError("Steam'i açamadım. Sen benim yerime açıp, tekrar beni çalıştırabilirsin :)");
+                        return;
+                    }
+                }
+                else
+                {
+                    ShowError("Bir sonraki sefere görüşmek üzere :)");
+                    return;
+                }
             }
 
+            var steamIdOkumaDenemesi = 0;
+            steamIdOku:
             // SteamID3 okunabiliyor mu kontrol et
             var steamId3 = SteamManager.GetSteamID3();
             if (string.IsNullOrEmpty(steamId3) || steamId3.Equals("0"))
             {
+                if (steamYeniAcildi)
+                {
+                    if (steamIdOkumaDenemesi <= 90)
+                    {
+                        steamIdOkumaDenemesi++;
+                        Thread.Sleep(1000);
+                        goto steamIdOku;
+                    }
+
+                    ShowError("Oyuna bağlanabilmek için Steam girişi yapmış olmalısın!");
+                    return;
+                }
+
                 ShowError("Oyuna bağlanabilmek için Steam girişi yapmış olmalısın!");
                 return;
             }

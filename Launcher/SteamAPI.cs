@@ -25,6 +25,25 @@ namespace Launcher
         {
             return Process.GetProcessesByName("steam").Any();
         }
+
+        public static bool RunSteam()
+        {
+            try
+            {
+                var steamExe = Registry.CurrentUser.OpenSubKey("Software\\Valve\\Steam")?.GetValue("SteamExe")?.ToString();
+                if (string.IsNullOrEmpty(steamExe))
+                {
+                    return false;
+                }
+
+                Process.Start(steamExe);
+                return true;
+            }
+            catch
+            {
+                return false;
+            }
+        }
     }
 
     public partial class SteamApi
