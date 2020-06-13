@@ -12,7 +12,7 @@ namespace Launcher
         {
             try
             {
-                return Registry.CurrentUser.OpenSubKey("Software\\Valve\\Steam\\ActiveProcess\\ActiveUser")?.ToString() ?? "0";
+                return Registry.CurrentUser.OpenSubKey("Software\\Valve\\Steam\\ActiveProcess")?.GetValue("ActiveUser")?.ToString() ?? "0";
             }
             catch
             {
