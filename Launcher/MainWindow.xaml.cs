@@ -7,6 +7,7 @@ using System.Reflection;
 using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Threading;
+using Microsoft.Win32;
 using Newtonsoft.Json;
 using SteamKit2;
 
@@ -92,14 +93,41 @@ namespace Launcher
             // renkli haritayı fivem klasörüne kopyala
             try
             {
-                var localAppData = Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData);
-                var appFolder = $"{localAppData}\\FiveM\\FiveM.app\\citizen\\common\\data\\ui\\";
-                File.WriteAllBytes($"{appFolder}mapzoomdata.meta", Properties.Resources.mapzoomdata);
-                File.WriteAllBytes($"{appFolder}pausemenu.xml", Properties.Resources.pausemenu_xml);
+                var fivemFolder = string.Empty;
+                var fivemShell = Registry.ClassesRoot.OpenSubKey("FiveM.ProtocolHandler\\shell\\open\\command");
+                if (fivemShell != null)
+                {
+                    var cmd = fivemShell.GetValue("")?.ToString();
+                    if (!string.IsNullOrEmpty(cmd))
+                    {
+                        if (cmd.Contains(" "))
+                        {
+                            fivemFolder = cmd.Split(' ')[0].Replace("\"", string.Empty);
+                        }
+                        else
+                        {
+                            fivemFolder = cmd.Replace("\"", string.Empty);
+                        }
+
+                        if (!string.IsNullOrEmpty(fivemFolder))
+                        {
+                            fivemFolder = $"{fivemFolder.Substring(0, fivemFolder.Length - 10)}\\FiveM.app\\citizen\\common\\data\\ui\\";
+                        }
+                    }
+                }
+
+                if (string.IsNullOrEmpty(fivemFolder))
+                {
+                    var localAppData = Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData);
+                    fivemFolder = $"{localAppData}\\FiveM\\FiveM.app\\citizen\\common\\data\\ui\\";
+                }
+
+                File.WriteAllBytes($"{fivemFolder}mapzoomdata.meta", Properties.Resources.mapzoomdata);
+                File.WriteAllBytes($"{fivemFolder}pausemenu.xml", Properties.Resources.pausemenu_xml);
             }
-            catch
+            catch (Exception err)
             {
-                // ignored
+                MessageBox.Show("Harita dosyaları kopyalanamadı.", "GormYa Launcher", MessageBoxButton.OK, MessageBoxImage.Warning);
             }
         }
 
