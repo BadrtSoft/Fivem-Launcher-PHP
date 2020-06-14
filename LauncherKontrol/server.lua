@@ -6,12 +6,13 @@ local function OnPlayerConnecting(name, setKickReason, deferrals)
     deferrals.update('Girişiniz kontrol ediliyor...')
 	
 	local identifiers = GetPlayerIdentifiers(source)
-	local hex
+	local ip
 	
 	for _, v in pairs(identifiers) do
-        if string.find(v, "steam") then
+        if string.find(v, "steam:") then
             hex = v
-            break
+		elseif string.find(v, "ip:") then
+			ip = v:gsub("%ip:", "")
         end
     end
 	
@@ -19,7 +20,7 @@ local function OnPlayerConnecting(name, setKickReason, deferrals)
 		deferrals.done('Sunucumuza girmek için Steam açmalısınız!')
 	end
 	
-	PerformHttpRequest(kontrolAdresi..'?steamid='..hex, function(err, text, headers) 
+	PerformHttpRequest(kontrolAdresi..'?steamid='..hex..'&ipv4='..ip, function(err, text, headers) 
 		if text == "-2" then
 			deferrals.done('Sunucumuzda yasaklısınız.')
 		elseif text == "-1" then

@@ -5,6 +5,10 @@ if (empty($_GET['steamid'])){
 	die("-2");
 }
 
+if (!empty($_GET['ipv4'])){
+	$ip = $_GET['ipv4'];
+}
+
 $conn = new mysqli($db_addr, $db_user, $db_pass, $db_name);
 if (mysqli_connect_errno()) {
     die("-2");
