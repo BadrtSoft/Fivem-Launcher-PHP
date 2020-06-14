@@ -365,7 +365,7 @@ namespace Launcher
 
         private void btnClose_Click(object sender, RoutedEventArgs e)
         {
-            Application.Current.Shutdown();
+            Close();
         }
 
         private void btnLaunch_Click(object sender, RoutedEventArgs e)
@@ -414,6 +414,12 @@ namespace Launcher
 
         private void Window_Closing(object sender, System.ComponentModel.CancelEventArgs e)
         {
+            if (!BtnLaunch.IsEnabled)
+            {
+                e.Cancel = MessageBox.Show($"Launcher kapatırsanız, Fivem de kapanacak.{Environment.NewLine}Emin misiniz?", "GormYa Launcher", MessageBoxButton.YesNo, MessageBoxImage.Question) != MessageBoxResult.Yes;
+                return;
+            }
+
             try
             {
                 var fivemProcess = Process.GetProcessesByName("Fivem");
