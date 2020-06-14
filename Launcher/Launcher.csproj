@@ -90,7 +90,8 @@
       <Generator>MSBuild:Compile</Generator>
       <SubType>Designer</SubType>
     </ApplicationDefinition>
-    <Compile Include="FivemAPI.cs" />
+    <Compile Include="Managers\FivemManager.cs" />
+    <Compile Include="Managers\LauncherAPIManager.cs" />
     <Compile Include="Resource1.Designer.cs">
       <AutoGen>True</AutoGen>
       <DesignTime>True</DesignTime>
@@ -101,10 +102,7 @@
       <DesignTime>True</DesignTime>
       <DependentUpon>SharedInfo.tt</DependentUpon>
     </Compile>
-    <Compile Include="SteamLanguage.cs" />
-    <Compile Include="SteamID.cs" />
-    <Compile Include="UpdateManager.cs" />
-    <Compile Include="UpdateObject.cs" />
+    <Compile Include="Managers\UpdateManager.cs" />
     <Page Include="MainWindow.xaml">
       <Generator>MSBuild:Compile</Generator>
       <SubType>Designer</SubType>
@@ -113,7 +111,7 @@
       <DependentUpon>App.xaml</DependentUpon>
       <SubType>Code</SubType>
     </Compile>
-    <Compile Include="SteamAPI.cs" />
+    <Compile Include="Managers\SteamManager.cs" />
     <Compile Include="MainWindow.xaml.cs">
       <DependentUpon>MainWindow.xaml</DependentUpon>
       <SubType>Code</SubType>
@@ -167,5 +165,6 @@
   <ItemGroup>
     <Service Include="{508349B6-6B84-4DF5-91F0-309BEEBAD82D}" />
   </ItemGroup>
+  <ItemGroup />
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
 </Project>

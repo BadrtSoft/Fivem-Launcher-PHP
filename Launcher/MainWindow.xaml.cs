@@ -8,9 +8,9 @@ using System.Threading;
 using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Threading;
+using Launcher.Managers;
 using Microsoft.Win32;
 using Newtonsoft.Json;
-using SteamKit2;
 
 namespace Launcher
 {
@@ -24,12 +24,15 @@ namespace Launcher
         private const string ServerCheckURL = "https://yalc.in/fivem_launcher/kontrol.php";
         private const string SteamProxyURL = "https://yalc.in/fivem_launcher/steamProxy.php";
 
-        private int _kontrolEdilen;
-        private int _hile;
         private string _steamHex;
-        private UpdateObject _updateObject;
+        private UpdateObject _globalVariables;
         private readonly bool _isLocal;
-        private bool _steamAcik;
+
+        private bool _steamYeniAcildi;
+
+        private readonly DispatcherTimer _timerCheats = new DispatcherTimer { Interval = TimeSpan.FromSeconds(60), IsEnabled = false }; // 60 saniyede bir hile korumasını çalıştır
+        private readonly DispatcherTimer _timerSetOnline = new DispatcherTimer { Interval = TimeSpan.FromSeconds(25), IsEnabled = false }; // 25 saniyede bir sunucudaki oyuncunun giriş tarihini güncelle
+        private readonly DispatcherTimer _timerGetOnlinePlayers = new DispatcherTimer { Interval = TimeSpan.FromSeconds(10), IsEnabled = false }; // 10 saniyede bir sunucudaki oyuncunun giriş tarihini güncelle
 
         public MainWindow()
         {
@@ -42,57 +45,84 @@ namespace Launcher
             InitializeComponent();
         }
 
-        private void ShowError(string message, bool halt = true)
+        private void Grid_Loaded(object sender, RoutedEventArgs e)
         {
-            Visibility = Visibility.Hidden;
-            MessageBox.Show(message, "GormYa Launcher", MessageBoxButton.OK, MessageBoxImage.Error);
-
-            if (halt)
-            {
-                Application.Current.Shutdown();
-            }
+            MouseLeftButtonDown += delegate { DragMove(); };
         }
 
         private void Window_Loaded(object sender, RoutedEventArgs e)
         {
+            FivemManager.KillFivem();
+
             var args = Environment.GetCommandLineArgs();
             if (args.Any(a => a.Equals("-updated")))
             {
-                MessageBox.Show("Launcher güncellendi!", "GormYa Launcher", MessageBoxButton.OK, MessageBoxImage.Information);
+                ShowInformation("Launcher güncellendi!");
                 UpdateKontrolEdildi();
             }
             else
             {
-                Task.Run(async () =>
-                {
-                    var currentVersion = Assembly.GetExecutingAssembly().GetName().Version.ToString();
-                    var updater = new UpdateManager(LauncherUpdateURL);
-                    _updateObject = await updater.CheckUpdate();
+                _timerCheats.Tick += CloseCheats;
+                _timerSetOnline.Tick += SetOnline;
+                _timerGetOnlinePlayers.Tick += GetOnlinePlayers;
 
-                    if (_updateObject.Version != currentVersion)
-                    {
-                        var isDownloaded = await updater.DownloadUpdate(Assembly.GetExecutingAssembly().Location);
-                        if (isDownloaded)
-                        {
-                            Dispatcher.Invoke(delegate { Visibility = Visibility.Hidden; });
+                Task.Run(UpdateControl);
+            }
+        }
 
-                            MessageBox.Show("Launcher güncellenecektir. Kapatılıp açılırken lütfen bekleyiniz...", "GormYa Launcher", MessageBoxButton.OK, MessageBoxImage.Information);
-                            await updater.InstallUpdate();
-                        }
-                        else
-                        {
-                            Dispatcher.Invoke(UpdateKontrolEdildi);
-                        }
-                    }
-                    else
-                    {
-                        Dispatcher.Invoke(UpdateKontrolEdildi);
-                    }
-                });
+        private void ShowError(string message, bool close = true)
+        {
+            if (!Dispatcher.CheckAccess()) { Dispatcher.Invoke(delegate { ShowError(message, close); }); return; }
+
+            Visibility = Visibility.Hidden;
+            MessageBox.Show(message, "GormYa Launcher", MessageBoxButton.OK, MessageBoxImage.Error);
+            if (close)
+            {
+                Close();
+            }
+            else
+            {
+                Visibility = Visibility.Visible;
+            }
+        }
+
+        private MessageBoxResult ShowWarning(string message, Visibility visibility = Visibility.Visible)
+        {
+            if (!Dispatcher.CheckAccess())
+            {
+                return Dispatcher.Invoke(() => ShowWarning(message, visibility));
             }
 
-            // renkli haritayı fivem klasörüne kopyala
-            try
+            Visibility = visibility;
+            return MessageBox.Show(message, "GormYa Launcher", MessageBoxButton.OK, MessageBoxImage.Warning);
+        }
+
+        private MessageBoxResult ShowInformation(string message, Visibility visibility = Visibility.Visible)
+        {
+            if (!Dispatcher.CheckAccess())
+            {
+                return Dispatcher.Invoke(() => ShowInformation(message, visibility));
+            }
+
+            Visibility = visibility;
+            return MessageBox.Show(message, "GormYa Launcher", MessageBoxButton.OK, MessageBoxImage.Information);
+        }
+
+        private MessageBoxResult ShowQuestion(string message, MessageBoxButton messageBoxButton = MessageBoxButton.YesNo, Visibility visibility = Visibility.Visible)
+        {
+            if (!Dispatcher.CheckAccess())
+            {
+                return Dispatcher.Invoke(() => ShowQuestion(message, messageBoxButton, visibility));
+            }
+
+            Visibility = visibility;
+            return MessageBox.Show(message, "GormYa Launcher", messageBoxButton, MessageBoxImage.Question);
+        }
+
+        private void Copy3DMapFiles()
+        {
+            // 3d harita dosyalarini kopyala
+            Task.Run(() =>
             {
                 var fivemFolder = string.Empty;
                 var fivemShell = Registry.ClassesRoot.OpenSubKey("FiveM.ProtocolHandler\\shell\\open\\command");
@@ -101,16 +131,8 @@ namespace Launcher
                     var cmd = fivemShell.GetValue("")?.ToString();
                     if (!string.IsNullOrEmpty(cmd))
                     {
-                        if (cmd.Contains(" "))
-                        {
-                            fivemFolder = cmd.Split(' ')[0].Replace("\"", string.Empty);
-                        }
-                        else
-                        {
-                            fivemFolder = cmd.Replace("\"", string.Empty);
-                        }
-
-                        if (!string.IsNullOrEmpty(fivemFolder))
+                        fivemFolder = cmd.Contains(" ") ? cmd.Split(' ')[0].Replace("\"", string.Empty) : cmd.Replace("\"", string.Empty);
+                        if (!string.IsNullOrEmpty(fivemFolder) && fivemFolder.Length > 10)
                         {
                             fivemFolder = $"{fivemFolder.Substring(0, fivemFolder.Length - 10)}\\FiveM.app\\citizen\\common\\data\\ui\\";
                         }
@@ -123,135 +145,250 @@ namespace Launcher
                     fivemFolder = $"{localAppData}\\FiveM\\FiveM.app\\citizen\\common\\data\\ui\\";
                 }
 
-                File.WriteAllBytes($"{fivemFolder}mapzoomdata.meta", Properties.Resources.mapzoomdata);
-                File.WriteAllBytes($"{fivemFolder}pausemenu.xml", Properties.Resources.pausemenu_xml);
-            }
-            catch (Exception err)
+                try
+                {
+                    File.WriteAllBytes($"{fivemFolder}mapzoomdata.meta", Properties.Resources.mapzoomdata);
+                    File.WriteAllBytes($"{fivemFolder}pausemenu.xml", Properties.Resources.pausemenu_xml);
+                    return true;
+                }
+                catch
+                {
+                    return false;
+                }
+            }).ContinueWith(task =>
             {
-                MessageBox.Show("Harita dosyaları kopyalanamadı.", "GormYa Launcher", MessageBoxButton.OK, MessageBoxImage.Warning);
+                if (!task.Result)
+                {
+                    ShowWarning("Harita dosyaları kopyalanamadı.");
+                }
+            });
+        }
+
+        private async Task UpdateControl()
+        {
+            var currentVersion = Assembly.GetExecutingAssembly().GetName().Version.ToString();
+            var exePath = Assembly.GetExecutingAssembly().Location;
+
+            var updater = new UpdateManager(LauncherUpdateURL, exePath);
+
+            _globalVariables = await updater.CheckUpdate();
+
+            if (_globalVariables == null)
+            {
+                ShowError("Launcher bilgilerini okuyamadım. İnternet bağlantınızda veya sunucumuzda sorun olabilir.");
+            }
+            else
+            {
+                if (_globalVariables.Version.Equals(currentVersion))
+                {
+                    UpdateKontrolEdildi();
+                    return;
+                }
+
+                var isDownloaded = await updater.DownloadUpdate();
+                if (!isDownloaded)
+                {
+                    ShowInformation("Güncelleme kontrol edilirken bir hata oluştu.");
+                    UpdateKontrolEdildi();
+                    return;
+                }
+
+                ShowInformation("Launcher güncellenecektir. Kapatılıp açılırken lütfen bekleyiniz...", Visibility.Hidden);
+                updater.InstallUpdate();
             }
         }
 
         private void UpdateKontrolEdildi()
         {
-            bool steamYeniAcildi = false;
-            // Steam çalışıyor mu kontrol et
-            _steamAcik = SteamManager.IsRunning();
-            if (!_steamAcik)
+            if (!Dispatcher.CheckAccess()) { Dispatcher.Invoke(UpdateKontrolEdildi); return; }
+
+            Copy3DMapFiles(); // 3D haritayı fivem klasörüne kopyala
+
+            GetSteamHex().ContinueWith(RenderUI); // Butonların ve online sayısının görünürlüğünü ayarla
+
+            CloseCheats(null, null); // Çalışan hile programı var mı kontrol et
+
+            _timerCheats.Start();
+
+            if (!string.IsNullOrEmpty(_globalVariables.ServerCode))
             {
-                if (MessageBox.Show($"Steam açık değil ve bu şekilde sunucuya bağlanamazsın.{Environment.NewLine}Açmamı ister misin?", "GormYa Launcher", MessageBoxButton.YesNo, MessageBoxImage.Question) == MessageBoxResult.Yes)
+                _timerGetOnlinePlayers.Start();
+            }
+        }
+
+        private void RenderUI(Task<string> task)
+        {
+            if (!Dispatcher.CheckAccess()) { Dispatcher.Invoke(delegate { RenderUI(task); }); return; }
+
+            if (string.IsNullOrEmpty(task.Result)) { ShowError("Steam bilgileri okunurken hata oluştu."); }
+
+            // Discord boş değilse butonunu göster
+            if (!string.IsNullOrEmpty(_globalVariables?.Discord))
+            {
+                BtnDiscord.Visibility = Visibility.Visible;
+            }
+
+            // TS3 boş değilse butonunu göster
+            if (!string.IsNullOrEmpty(_globalVariables?.Teamspeak3))
+            {
+                BtnTeamspeak.Visibility = Visibility.Visible;
+            }
+
+            // Server code boş değilse online sayısını göster
+            if (!string.IsNullOrEmpty(_globalVariables?.ServerCode))
+            {
+                LblOnline.Visibility = Visibility.Visible;
+            }
+
+            // Server boş değilse butonunu göster
+            if (!string.IsNullOrEmpty(_globalVariables?.Server))
+            {
+                BtnLaunch.Visibility = Visibility.Visible;
+            }
+        }
+
+        private async Task<string> GetSteamHex()
+        {
+            if (!SteamManager.IsRunning())
+            {
+                var response = ShowQuestion($"Steam açık değil ve bu şekilde sunucuya bağlanamazsın.{Environment.NewLine}Açmamı ister misin?");
+                if (response == MessageBoxResult.Yes)
                 {
                     if (SteamManager.RunSteam())
                     {
-                        steamYeniAcildi = true;
+                        _steamYeniAcildi = true;
                     }
                     else
                     {
+                        _steamHex = null;
                         ShowError("Steam'i açamadım. Sen benim yerime açıp, tekrar beni çalıştırabilirsin :)");
-                        return;
+                        return _steamHex;
                     }
                 }
                 else
                 {
+                    _steamHex = null;
                     ShowError("Bir sonraki sefere görüşmek üzere :)");
-                    return;
+                    return _steamHex;
                 }
             }
 
             var steamIdOkumaDenemesi = 0;
-            steamIdOku:
-            // SteamID3 okunabiliyor mu kontrol et
-            var steamId3 = SteamManager.GetSteamID3();
-            if (string.IsNullOrEmpty(steamId3) || steamId3.Equals("0"))
+        steamID3Oku:
+            var steamID3 = SteamManager.GetSteamID3();
+            if (string.IsNullOrEmpty(steamID3) || steamID3.Equals("0"))
             {
-                if (steamYeniAcildi)
+                if (_steamYeniAcildi)
                 {
-                    if (steamIdOkumaDenemesi <= 90)
+                    if (steamIdOkumaDenemesi <= 120) // steam açılmasını 120 saniyeye kadar bekle bekle
                     {
                         steamIdOkumaDenemesi++;
                         Thread.Sleep(1000);
-                        goto steamIdOku;
+                        goto steamID3Oku;
                     }
 
+                    _steamHex = null;
                     ShowError("Oyuna bağlanabilmek için Steam girişi yapmış olmalısın!");
-                    return;
+                    return _steamHex;
                 }
 
+                _steamHex = null;
                 ShowError("Oyuna bağlanabilmek için Steam girişi yapmış olmalısın!");
-                return;
+                return _steamHex;
             }
 
-            var steam = new SteamID(Convert.ToUInt32(steamId3), EUniverse.Public, EAccountType.Individual);
-            var steamId64 = steam.ConvertToUInt64().ToString();
-            if (string.IsNullOrEmpty(steamId64) || steamId64.Equals("0"))
+            var steamID64 = SteamManager.ConvertSteamID64(steamID3);
+            if (string.IsNullOrEmpty(steamID64) || steamID64.Equals("0"))
             {
-                ShowError("Oyuna bağlanabilmek için Steam girişi yapmış olmalısın!");
-                return;
+                _steamHex = null;
+                ShowError("Steam bilgilerine ulaşamadım. Lütfen daha sonra tekrar dene.");
+                return _steamHex;
             }
 
             // Steam api'den kullanıcı bilgilerini çek ve kontrol et
-            var player = GetSteamPlayer(steamId64);
-            if (player == null || string.IsNullOrEmpty(player.Personaname))
+            var steamProfile = await SteamManager.GetSteamProfile(SteamProxyURL, steamID64);
+            if (steamProfile == null || string.IsNullOrEmpty(steamProfile.Personaname))
             {
-                ShowError("Steam bilgilerinizi okuyamadık! Açık olduğundan ve giriş yaptığınızdan emin olun.");
-                return;
+                _steamHex = null;
+                ShowError("Steam bilgilerinizi okuyamadık!");
+                return _steamHex;
             }
 
-            _steamAcik = true;
-
-            // Discord boş değilse butonunu göster
-            if (!string.IsNullOrEmpty(_updateObject.Discord)) BtnDiscord.Visibility = Visibility.Visible;
-
-            // TS3 boş değilse butonunu göster
-            if (!string.IsNullOrEmpty(_updateObject.Teamspeak3)) BtnTeamspeak.Visibility = Visibility.Visible;
-
-            // Server code boş değilse online sayısını göster
-            if (!string.IsNullOrEmpty(_updateObject?.ServerCode)) LblOnline.Visibility = Visibility.Visible;
-
-            // Server boş değilse butonunu göster
-            if (!string.IsNullOrEmpty(_updateObject?.Server)) BtnLaunch.Visibility = Visibility.Visible;
-
-            // Hile koruması
-            CheatProgramlariniKapat(null, null);
-
-            // 25 saniyede bir hile korumasını çalıştır
-            var timer = new DispatcherTimer { Interval = TimeSpan.FromSeconds(25) };
-            timer.Tick += CheatProgramlariniKapat;
-            timer.Start();
+            _steamHex = SteamManager.ConvertSteamIDHex(steamID64);
+            return _steamHex;
         }
 
-        private void CheatProgramlariniKapat(object sender, EventArgs e)
+        private void CloseCheats(object sender, EventArgs e)
         {
-            // Durum guncelle (tarih guncellesin ki, server.lua oyundan atmasin)
+            Task.Run(() =>
+            {
+                var controlledProcess = 0;
+                var killedProcess = 0;
+
+                var processes = Process.GetProcesses();
+                foreach (var process in processes)
+                {
+                    if (_globalVariables.Cheats.Any(s => s.Equals(process.ProcessName, StringComparison.InvariantCultureIgnoreCase)))
+                    {
+                        process.Kill();
+                        killedProcess++;
+                    }
+                    else
+                    {
+                        controlledProcess++;
+                    }
+                }
+
+                if (killedProcess > 0)
+                {
+                    // TODO: Hile report olacak
+                    FivemManager.KillFivem();
+                    ShowError("Bilgisayarınızda hile programı çalıştığı tespit edildi.");
+                }
+
+                if (controlledProcess == 0)
+                {
+                    FivemManager.KillFivem();
+                    ShowError("Bilgisayarınız anti-hile taramasına izin vermiyor.");
+                }
+            });
+        }
+
+        private void SetOnline(object sender, EventArgs e)
+        {
+            // Oyundan disconnect olmuş mu kontrol et, disconnect olmamışsa son girişi güncelle
+            Task.Run(() => LauncherAPIManager.GetStatus(ServerCheckURL, _steamHex)).ContinueWith(getTask =>
+            {
+                var status = getTask.Result;
+
+                if (string.IsNullOrEmpty(status)) return;
+
+                if (status == "-4")
+                {
+                    FivemManager.KillFivem();
+                }
+                else
+                {
+                    var task = LauncherAPIManager.SetStatus(ServerUpdateURL, _steamHex, status);
+                }
+            });
+        }
+
+        private void GetOnlinePlayers(object sender, EventArgs e)
+        {
+            // Online sayısını güncelle
             Task.Run(() =>
             {
                 try
                 {
                     using (var webClient = new WebClient())
                     {
-                        var durum = webClient.DownloadString($"{ServerCheckURL}?steamid={_steamHex}");
-                        if (durum == "-4")
-                        {
-                            try
+                        webClient.DownloadStringTaskAsync(new Uri($"https://servers-frontend.fivem.net/api/servers/single/{_globalVariables.ServerCode}"))
+                            .ContinueWith(task =>
                             {
-                                var fivemProcess = Process.GetProcessesByName("Fivem");
-                                foreach (var process in fivemProcess)
-                                {
-                                    process.Kill();
-                                }
-                            }
-                            catch
-                            {
-                                // ignored
-                            }
-
-                            webClient.UploadString($"{ServerUpdateURL}?steamid={_steamHex}&durum=0", "POST", $"steamid={_steamHex}&durum=0");
-                            Dispatcher.Invoke(delegate { BtnLaunch.IsEnabled = true; });
-                        }
-                        else
-                        {
-                            webClient.UploadString($"{ServerUpdateURL}?steamid={_steamHex}&durum={durum}", "POST", $"steamid={_steamHex}&durum={durum}");
-                        }
+                                var obj = JsonConvert.DeserializeObject<FivemApi>(task.Result);
+                                Dispatcher.Invoke(delegate { LblOnline.Content = $"Online: {obj.Data.Clients}"; });
+                            });
                     }
                 }
                 catch
@@ -259,108 +396,16 @@ namespace Launcher
                     // ignored
                 }
             });
-
-            // Online sayısını güncelle
-            if (!string.IsNullOrEmpty(_updateObject.ServerCode))
-            {
-                Task.Run(() =>
-                {
-                    try
-                    {
-                        using (var webClient = new WebClient())
-                        {
-                            webClient.DownloadStringTaskAsync(new Uri($"https://servers-frontend.fivem.net/api/servers/single/{_updateObject.ServerCode}"))
-                                .ContinueWith(task =>
-                                {
-                                    var obj = JsonConvert.DeserializeObject<FivemApi>(task.Result);
-                                    Dispatcher.Invoke(delegate { LblOnline.Content = $"Online: {obj.Data.Clients}"; });
-                                });
-                        }
-                    }
-                    catch
-                    {
-                        // ignored
-                    }
-                });
-            }
-
-            // Hile isimlerini çek ve kill et
-            Task.Run(() =>
-            {
-                using (var webClient = new WebClient())
-                {
-                    webClient.DownloadStringTaskAsync(new Uri(LauncherUpdateURL)).ContinueWith(task =>
-                    {
-                        _updateObject = JsonConvert.DeserializeObject<UpdateObject>(task.Result);
-
-                        var processes = Process.GetProcesses();
-                        foreach (var process in processes)
-                        {
-                            if (_updateObject.Cheats.Any(s => s.Equals(process.ProcessName, StringComparison.OrdinalIgnoreCase)))
-                            {
-                                // Hileyi kapat
-                                process.Kill();
-                                _hile++;
-                            }
-                            else
-                            {
-                                _kontrolEdilen++;
-                            }
-                        }
-
-                        // Hileye rastlanmışsa fivem kapat
-                        if (_hile > 0)
-                        {
-                            // TODO: Hile report olacak
-
-                            try
-                            {
-                                var fivemProcess = Process.GetProcessesByName("Fivem");
-                                foreach (var process in fivemProcess)
-                                {
-                                    process.Kill();
-                                }
-                            }
-                            catch
-                            {
-                                // ignored
-                            }
-                        }
-                    });
-                }
-            });
-        }
-
-        private Player GetSteamPlayer(string steamid)
-        {
-            // TODO: Task yapılacak
-
-            try
-            {
-                string response;
-                using (var webClient = new WebClient())
-                {
-                    response = webClient.DownloadString($"{SteamProxyURL}?id={steamid}");
-                }
-
-                var obj = JsonConvert.DeserializeObject<SteamApi>(response);
-                _steamHex = "steam:" + Convert.ToString(long.Parse(steamid), 16);
-                return obj.Response.Players[0];
-            }
-            catch
-            {
-                return null;
-            }
         }
 
         private void btnDiscord_Click(object sender, RoutedEventArgs e)
         {
-            Process.Start(_updateObject.Discord);
+            Process.Start(_globalVariables.Discord);
         }
 
         private void btnTeamspeak_Click(object sender, RoutedEventArgs e)
         {
-            Process.Start($"ts3server://{_updateObject.Teamspeak3}");
+            Process.Start($"ts3server://{_globalVariables.Teamspeak3}");
         }
 
         private void btnClose_Click(object sender, RoutedEventArgs e)
@@ -370,46 +415,51 @@ namespace Launcher
 
         private void btnLaunch_Click(object sender, RoutedEventArgs e)
         {
-            if (_kontrolEdilen <= 0 || _hile > 0)
-            {
-                MessageBox.Show("Sunucu kaydınız yapılamadı. Daha sonra tekrar deneyin."); // hile yakalandı veya kontrol edilemedi
-                return;
-            }
+            FivemManager.KillFivem();
 
-            try
+            Task.Run(() => LauncherAPIManager.SetStatus(ServerUpdateURL, _steamHex, "1")).ContinueWith(task =>
             {
-                using (var webClient = new WebClient())
+                if (task.Result == "1")
                 {
-                    var r = webClient.UploadString($"{ServerUpdateURL}?steamid={_steamHex}&durum=1", "POST", $"steamid={_steamHex}&durum=1");
-                    if (r == "1")
-                    {
-                        BtnLaunch.IsEnabled = false;
-                        var processName = $"fivem://connect/{(_isLocal ? "localhost:30120" : _updateObject.Server)}";
-
-                        Task.Run(() =>
-                        {
-                            var process = Process.Start(processName);
-                            process?.WaitForExit();
-                        }).ContinueWith(task =>
-                        {
-                            Dispatcher.Invoke(delegate { BtnLaunch.IsEnabled = true; });
-                        });
-                    }
-                    else
-                    {
-                        MessageBox.Show("Sunucu kaydınız yapılamadı. Daha sonra tekrar deneyin.");
-                    }
+                    GetSteamHex().ContinueWith(StartFivem);
                 }
-            }
-            catch (Exception err)
-            {
-                MessageBox.Show($"Hata:{err.Message}");
-            }
+                else
+                {
+                    MessageBox.Show("Sunucu kaydınız yapılamadı. Daha sonra tekrar deneyin.");
+                }
+            });
         }
 
-        private void Grid_Loaded(object sender, RoutedEventArgs e)
+        private void StartFivem(Task<string> task)
         {
-            MouseLeftButtonDown += delegate { DragMove(); };
+            if (!Dispatcher.CheckAccess()) { Dispatcher.Invoke(delegate { StartFivem(task); }); return; }
+
+            if (string.IsNullOrEmpty(task.Result)) { ShowError("Steam bilgileri okunurken hata oluştu."); }
+
+            BtnLaunch.IsEnabled = false;
+
+            if (!_timerSetOnline.IsEnabled) _timerSetOnline.Start();
+
+            if (_timerGetOnlinePlayers.IsEnabled) _timerGetOnlinePlayers.Stop();
+
+            Task.Run(() =>
+            {
+                var process = Process.Start($"fivem://connect/{(_isLocal ? "localhost:30120" : _globalVariables.Server)}", "-gormya");
+                process?.WaitForExit();
+            }).ContinueWith(FivemStopped);
+        }
+
+        private void FivemStopped(Task task)
+        {
+            if (!Dispatcher.CheckAccess()) { Dispatcher.Invoke(delegate { FivemStopped(task); }); return; }
+
+            Task.Run(() => LauncherAPIManager.SetStatus(ServerUpdateURL, _steamHex, "0"));
+
+            BtnLaunch.IsEnabled = true;
+
+            if (_timerSetOnline.IsEnabled) _timerSetOnline.Stop();
+
+            if (!string.IsNullOrEmpty(_globalVariables.ServerCode) && !_timerGetOnlinePlayers.IsEnabled) _timerGetOnlinePlayers.Start();
         }
 
         private void Window_Closing(object sender, System.ComponentModel.CancelEventArgs e)
@@ -420,32 +470,7 @@ namespace Launcher
                 return;
             }
 
-            try
-            {
-                var fivemProcess = Process.GetProcessesByName("Fivem");
-                foreach (var process in fivemProcess)
-                {
-                    process.Kill();
-                }
-            }
-            catch
-            {
-                // ignored
-            }
-
-            if (!_steamAcik) return;
-
-            try
-            {
-                using (var webClient = new WebClient())
-                {
-                    webClient.UploadString($"{ServerUpdateURL}?steamid={_steamHex}&durum=0", "POST", $"steamid={_steamHex}&durum=0");
-                }
-            }
-            catch
-            {
-                // ignored
-            }
+            FivemManager.KillFivem();
         }
     }
 }

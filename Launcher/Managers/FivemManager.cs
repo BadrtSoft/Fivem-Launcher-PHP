@@ -1,8 +1,28 @@
 ﻿using System;
+using System.Diagnostics;
 using Newtonsoft.Json;
 
-namespace Launcher
+namespace Launcher.Managers
 {
+    public static class FivemManager
+    {
+        public static void KillFivem()
+        {
+            var fivemProcess = Process.GetProcessesByName("fivem");
+            foreach (var process in fivemProcess)
+            {
+                try
+                {
+                    process.Kill();
+                }
+                catch
+                {
+                    // ignored
+                }
+            }
+        }
+    }
+
     public partial class FivemApi
     {
         [JsonProperty("EndPoint")]

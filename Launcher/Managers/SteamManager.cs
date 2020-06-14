@@ -1,10 +1,12 @@
 ﻿using System;
 using System.Diagnostics;
 using System.Linq;
+using System.Net;
+using System.Threading.Tasks;
 using Microsoft.Win32;
 using Newtonsoft.Json;
 
-namespace Launcher
+namespace Launcher.Managers
 {
     public static class SteamManager
     {
@@ -19,6 +21,12 @@ namespace Launcher
                 return "0";
                 // ignored
             }
+        }
+
+        public static string ConvertSteamID64(string steamID3)
+        {
+            var int64 = Convert.ToInt64(steamID3);
+            return (int64 + 76561197960265728L).ToString();
         }
 
         public static bool IsRunning()
@@ -44,6 +52,33 @@ namespace Launcher
                 return false;
             }
         }
+
+        public static async Task<SteamPlayer> GetSteamProfile(string steamProxyURL, string steamId64)
+        {
+            if (string.IsNullOrEmpty(steamProxyURL) || string.IsNullOrEmpty(steamId64))
+            {
+                return null;
+            }
+
+            try
+            {
+                using (var webClient = new WebClient())
+                {
+                    var response = await webClient.DownloadStringTaskAsync(new Uri($"{steamProxyURL}?id={steamId64}"));
+                    var obj = JsonConvert.DeserializeObject<SteamApi>(response);
+                    return obj.Response?.SteamPlayers[0];
+                }
+            }
+            catch
+            {
+                return null;
+            }
+        }
+
+        public static string ConvertSteamIDHex(string steamID64)
+        {
+            return $"steam:{Convert.ToString(long.Parse(steamID64), 16)}";
+        }
     }
 
     public partial class SteamApi
@@ -55,10 +90,10 @@ namespace Launcher
     public partial class Response
     {
         [JsonProperty("players")]
-        public Player[] Players { get; set; }
+        public SteamPlayer[] SteamPlayers { get; set; }
     }
 
-    public partial class Player
+    public partial class SteamPlayer
     {
         [JsonProperty("steamid")]
         public string Steamid { get; set; }
