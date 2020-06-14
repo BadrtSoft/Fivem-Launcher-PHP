@@ -385,7 +385,15 @@ namespace Launcher
                     {
                         BtnLaunch.IsEnabled = false;
                         var processName = $"fivem://connect/{(_isLocal ? "localhost:30120" : _updateObject.Server)}";
-                        Process.Start(processName);
+
+                        Task.Run(() =>
+                        {
+                            var process = Process.Start(processName);
+                            process?.WaitForExit();
+                        }).ContinueWith(task =>
+                        {
+                            Dispatcher.Invoke(delegate { BtnLaunch.IsEnabled = true; });
+                        });
                     }
                     else
                     {
