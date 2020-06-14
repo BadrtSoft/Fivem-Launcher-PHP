@@ -29,6 +29,20 @@ require 'ayarlar.php';
 		"Renamenu",
 		"RobloxPlayerBeta",
 		"root",
-		"Task Manager"
+		"Task Manager",
+		"Desudo",
+		"Brutan",
+		"EulenCheats",
+		"renalua",
+		"Rena",
+		"HamHaxia", 
+		"Ham Mafia", 
+		"Player Crash",  
+		"34ByTe", 
+		"Anti-Lynx",
+		"AlphaV",
+		"vjuton",
+		"Soviet Bear",
+		"MARVIN menu"
 	]
 }
