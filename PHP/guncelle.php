@@ -5,7 +5,7 @@ if (empty($_GET['steamid']) || !isset($_GET['durum'])){
 	die("-2");
 }
 
-if ($_GET['durum'] != '-1' && $_GET['durum'] != '0' && $_GET['durum'] != '1'){
+if ($_GET['durum'] != '-4' && $_GET['durum'] != '-1' && $_GET['durum'] != '0' && $_GET['durum'] != '1'){
 	die("-2");
 }
 
@@ -34,14 +34,14 @@ if ($stmt = $conn->prepare("SELECT login_date, ip_address, status FROM LauncherS
 		}
 	}
 	else {
-		if ($status == -1) { // eger oyundaysa ip adresini degistirmiyoruz ki, 2 kisi ayni anda giremesin
-			$query = $conn->prepare("UPDATE LauncherStatuses SET login_date=NOW(), status=?");
-			$query->bind_param('s', $_GET['durum']);
+		if ($status == -1 || $status == -4 || $status == 0) { // eger oyundaysa ip adresini degistirmiyoruz ki, 2 kisi ayni anda giremesin
+			$query = $conn->prepare("UPDATE LauncherStatuses SET login_date=NOW(), status=? WHERE steamid=?");
+			$query->bind_param('ss', $_GET['durum'], $_GET['steamid']);
 			$query->execute();
 			$query->close();	
 		} else {
-			$query = $conn->prepare("UPDATE LauncherStatuses SET login_date=NOW(), ip_address=?, status=?");
-			$query->bind_param('ss', $ip, $_GET['durum']);
+			$query = $conn->prepare("UPDATE LauncherStatuses SET login_date=NOW(), ip_address=?, status=? WHERE steamid=?");
+			$query->bind_param('sss', $ip, $_GET['durum'], $_GET['steamid']);
 			$query->execute();
 			$query->close();
 		}

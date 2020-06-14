@@ -47,7 +47,7 @@ local function OnPlayerDrop(name)
         end
     end
 	
-	PerformHttpRequest(guncellemeAdresi..'?steamid='..hex..'&durum=0', function(err, text, headers) end, 'GET', '', { ["Content-Type"] = 'application/json' }) 	
+	PerformHttpRequest(guncellemeAdresi..'?steamid='..hex..'&durum=-4', function(err, text, headers) end, 'GET', '', { ["Content-Type"] = 'application/json' }) 	
 end
 
 AddEventHandler("playerConnecting", OnPlayerConnecting)

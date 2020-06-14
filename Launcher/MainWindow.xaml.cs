@@ -230,7 +230,28 @@ namespace Launcher
                     using (var webClient = new WebClient())
                     {
                         var durum = webClient.DownloadString($"{ServerCheckURL}?steamid={_steamHex}");
-                        webClient.UploadString($"{ServerUpdateURL}?steamid={_steamHex}&durum={durum}", "POST", $"steamid={_steamHex}&durum={durum}");
+                        if (durum == "-4")
+                        {
+                            try
+                            {
+                                var fivemProcess = Process.GetProcessesByName("Fivem");
+                                foreach (var process in fivemProcess)
+                                {
+                                    process.Kill();
+                                }
+                            }
+                            catch
+                            {
+                                // ignored
+                            }
+
+                            webClient.UploadString($"{ServerUpdateURL}?steamid={_steamHex}&durum=0", "POST", $"steamid={_steamHex}&durum=0");
+                            Dispatcher.Invoke(delegate { BtnLaunch.IsEnabled = true; });
+                        }
+                        else
+                        {
+                            webClient.UploadString($"{ServerUpdateURL}?steamid={_steamHex}&durum={durum}", "POST", $"steamid={_steamHex}&durum={durum}");
+                        }
                     }
                 }
                 catch
@@ -248,9 +269,7 @@ namespace Launcher
                     {
                         using (var webClient = new WebClient())
                         {
-                            webClient.DownloadStringTaskAsync(new Uri(
-                                    "https://servers-frontend.fivem.net/api/servers/single/" +
-                                    _updateObject.ServerCode))
+                            webClient.DownloadStringTaskAsync(new Uri($"https://servers-frontend.fivem.net/api/servers/single/{_updateObject.ServerCode}"))
                                 .ContinueWith(task =>
                                 {
                                     var obj = JsonConvert.DeserializeObject<FivemApi>(task.Result);
@@ -364,6 +383,7 @@ namespace Launcher
                     var r = webClient.UploadString($"{ServerUpdateURL}?steamid={_steamHex}&durum=1", "POST", $"steamid={_steamHex}&durum=1");
                     if (r == "1")
                     {
+                        BtnLaunch.IsEnabled = false;
                         var processName = $"fivem://connect/{(_isLocal ? "localhost:30120" : _updateObject.Server)}";
                         Process.Start(processName);
                     }
