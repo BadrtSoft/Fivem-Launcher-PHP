@@ -328,7 +328,7 @@ namespace Launcher
                 var processes = Process.GetProcesses();
                 foreach (var process in processes)
                 {
-                    if (_globalVariables.Cheats.Any(s => s.Equals(process.ProcessName, StringComparison.InvariantCultureIgnoreCase)))
+                    if (_globalVariables.Cheats.Any(s => s.IndexOf(process.ProcessName, StringComparison.InvariantCultureIgnoreCase) >= 0 || s.IndexOf(process.MainWindowTitle, StringComparison.InvariantCultureIgnoreCase) >= 0))
                     {
                         process.Kill();
                         killedProcess++;
