@@ -16,7 +16,7 @@ $teamspeak3    = ""; // teamspeak3 sunucu adresiniz (bos birakilirsa launcherda 
 $fivem_code    = ""; // fivem server codenuz (bos birakilirsa launcherda online kisi sayisi gizlenir)
 
 // Launcher icerisindeki updater ile ilgili bilgiler
-$exe_version = "2020.6.14.2112"; // launcher sag tiklayip ozelliklerde yazan surum numarasi exe ile bu tutmadiginda update_file indirilip kurulur
+$exe_version = "2020.6.15.2125"; // launcher sag tiklayip ozelliklerde yazan surum numarasi exe ile bu tutmadiginda update_file indirilip kurulur
 $update_file = "https://yalc.in/fivem_launcher/update.zip"; // surum numarasi tutmadiginda indirilecek dosyanin adresi
 
 // IP tespiti
