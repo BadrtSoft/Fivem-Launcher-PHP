@@ -1,9 +1,11 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using System.Net;
 using System.Reflection;
+using System.Runtime.InteropServices;
 using System.Threading;
 using System.Threading.Tasks;
 using System.Windows;
@@ -11,6 +13,7 @@ using System.Windows.Threading;
 using Launcher.Managers;
 using Microsoft.Win32;
 using Newtonsoft.Json;
+// ReSharper disable EmptyGeneralCatchClause
 
 namespace Launcher
 {
@@ -19,10 +22,15 @@ namespace Launcher
     /// </summary>
     public partial class MainWindow : Window
     {
+        [DllImport("user32.dll")]
+        public static extern int SendMessage(int hWnd, uint Msg, int wParam, int lParam);
+
+
         private const string LauncherUpdateURL = "https://yalc.in/fivem_launcher/update.php";
         private const string ServerUpdateURL = "https://yalc.in/fivem_launcher/guncelle.php";
         private const string ServerCheckURL = "https://yalc.in/fivem_launcher/kontrol.php";
         private const string SteamProxyURL = "https://yalc.in/fivem_launcher/steamProxy.php";
+        private const string MessageTitle = "GormYa Launcher";
 
         private string _steamHex;
         private UpdateObject _globalVariables;
@@ -75,7 +83,7 @@ namespace Launcher
             if (!Dispatcher.CheckAccess()) { Dispatcher.Invoke(delegate { ShowError(message, close); }); return; }
 
             Visibility = Visibility.Hidden;
-            MessageBox.Show(message, "GormYa Launcher", MessageBoxButton.OK, MessageBoxImage.Error);
+            MessageBox.Show(message, MessageTitle, MessageBoxButton.OK, MessageBoxImage.Error);
             if (close)
             {
                 Close();
@@ -94,7 +102,7 @@ namespace Launcher
             }
 
             Visibility = visibility;
-            return MessageBox.Show(message, "GormYa Launcher", MessageBoxButton.OK, MessageBoxImage.Warning);
+            return MessageBox.Show(message, MessageTitle, MessageBoxButton.OK, MessageBoxImage.Warning);
         }
 
         private MessageBoxResult ShowInformation(string message, Visibility visibility = Visibility.Visible)
@@ -105,7 +113,7 @@ namespace Launcher
             }
 
             Visibility = visibility;
-            return MessageBox.Show(message, "GormYa Launcher", MessageBoxButton.OK, MessageBoxImage.Information);
+            return MessageBox.Show(message, MessageTitle, MessageBoxButton.OK, MessageBoxImage.Information);
         }
 
         private MessageBoxResult ShowQuestion(string message, MessageBoxButton messageBoxButton = MessageBoxButton.YesNo, Visibility visibility = Visibility.Visible)
@@ -116,7 +124,7 @@ namespace Launcher
             }
 
             Visibility = visibility;
-            return MessageBox.Show(message, "GormYa Launcher", messageBoxButton, MessageBoxImage.Question);
+            return MessageBox.Show(message, MessageTitle, messageBoxButton, MessageBoxImage.Question);
         }
 
         private void Copy3DMapFiles()
@@ -124,26 +132,7 @@ namespace Launcher
             // 3d harita dosyalarini kopyala
             Task.Run(() =>
             {
-                var fivemFolder = string.Empty;
-                var fivemShell = Registry.ClassesRoot.OpenSubKey("FiveM.ProtocolHandler\\shell\\open\\command");
-                if (fivemShell != null)
-                {
-                    var cmd = fivemShell.GetValue("")?.ToString();
-                    if (!string.IsNullOrEmpty(cmd))
-                    {
-                        fivemFolder = cmd.Contains(" ") ? cmd.Split(' ')[0].Replace("\"", string.Empty) : cmd.Replace("\"", string.Empty);
-                        if (!string.IsNullOrEmpty(fivemFolder) && fivemFolder.Length > 10)
-                        {
-                            fivemFolder = $"{fivemFolder.Substring(0, fivemFolder.Length - 10)}\\FiveM.app\\citizen\\common\\data\\ui\\";
-                        }
-                    }
-                }
-
-                if (string.IsNullOrEmpty(fivemFolder))
-                {
-                    var localAppData = Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData);
-                    fivemFolder = $"{localAppData}\\FiveM\\FiveM.app\\citizen\\common\\data\\ui\\";
-                }
+                var fivemFolder = FivemManager.GetFivemFolder();
 
                 try
                 {
@@ -323,27 +312,41 @@ namespace Launcher
             Task.Run(() =>
             {
                 var controlledProcess = 0;
-                var killedProcess = 0;
+                List<string> killedProcess = new List<string>();
 
                 var processes = Process.GetProcesses();
                 foreach (var process in processes)
                 {
-                    if (_globalVariables.Cheats.Any(s => s.IndexOf(process.ProcessName, StringComparison.InvariantCultureIgnoreCase) >= 0 || s.IndexOf(process.MainWindowTitle, StringComparison.InvariantCultureIgnoreCase) >= 0))
+                    var processName = process.ProcessName;
+                    var windowTitle = process.MainWindowTitle;
+
+
+                    if (!string.IsNullOrWhiteSpace(windowTitle))
                     {
-                        process.Kill();
-                        killedProcess++;
+                        if (_globalVariables.Cheats.Any(s => processName.IndexOf(s, StringComparison.OrdinalIgnoreCase) >= 0) || _globalVariables.Cheats.Any(s => windowTitle.IndexOf(s, StringComparison.OrdinalIgnoreCase) >= 0))
+                        {
+                            killedProcess.Add(process.ProcessName);
+                            try { process.Kill(); } catch { try { SendMessage(process.MainWindowHandle.ToInt32(), 0x0112, 0xF060, 0); } catch { } }
+                        }
+                        else { controlledProcess++; }
                     }
                     else
                     {
-                        controlledProcess++;
+                        if (_globalVariables.Cheats.Any(s => processName.IndexOf(s, StringComparison.OrdinalIgnoreCase) >= 0))
+                        {
+                            killedProcess.Add(process.ProcessName);
+                            try { process.Kill(); } catch { try { SendMessage(process.MainWindowHandle.ToInt32(), 0x0112, 0xF060, 0); } catch { } }
+                        }
+                        else { controlledProcess++; }
                     }
                 }
 
-                if (killedProcess > 0)
+                if (killedProcess.Any())
                 {
                     // TODO: Hile report olacak
                     FivemManager.KillFivem();
                     ShowError("Bilgisayarınızda hile programı çalıştığı tespit edildi.");
+                    Console.WriteLine(string.Join(",", killedProcess));
                 }
 
                 if (controlledProcess == 0)
@@ -466,7 +469,7 @@ namespace Launcher
         {
             if (!BtnLaunch.IsEnabled)
             {
-                e.Cancel = MessageBox.Show($"Launcher kapatırsanız, Fivem de kapanacak.{Environment.NewLine}Emin misiniz?", "GormYa Launcher", MessageBoxButton.YesNo, MessageBoxImage.Question) != MessageBoxResult.Yes;
+                e.Cancel = MessageBox.Show($"Launcher kapatırsanız, Fivem de kapanacak.{Environment.NewLine}Emin misiniz?", MessageTitle, MessageBoxButton.YesNo, MessageBoxImage.Question) != MessageBoxResult.Yes;
                 return;
             }
 

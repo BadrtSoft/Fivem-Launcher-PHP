@@ -1,6 +1,8 @@
 ﻿using System;
 using System.Diagnostics;
+using Microsoft.Win32;
 using Newtonsoft.Json;
+// ReSharper disable EmptyGeneralCatchClause
 
 namespace Launcher.Managers
 {
@@ -9,17 +11,31 @@ namespace Launcher.Managers
         public static void KillFivem()
         {
             var fivemProcess = Process.GetProcessesByName("fivem");
-            foreach (var process in fivemProcess)
+            foreach (var process in fivemProcess) { try { process.Kill(); } catch { } }
+        }
+
+        public static string GetFivemFolder()
+        {
+            var fivemShell = Registry.ClassesRoot.OpenSubKey("FiveM.ProtocolHandler\\shell\\open\\command");
+            if (fivemShell == null) { return GetStaticFivemFolder(); }
+
+            var cmd = fivemShell.GetValue(string.Empty)?.ToString();
+            if (string.IsNullOrEmpty(cmd)) { return GetStaticFivemFolder(); }
+
+            var fivemFolder = cmd.Contains(" ") ? cmd.Split(' ')[0].Replace("\"", string.Empty) : cmd.Replace("\"", string.Empty);
+            if (!string.IsNullOrEmpty(fivemFolder) && fivemFolder.Length > 10)
             {
-                try
-                {
-                    process.Kill();
-                }
-                catch
-                {
-                    // ignored
-                }
+                fivemFolder = $"{fivemFolder.Substring(0, fivemFolder.Length - 10)}\\FiveM.app\\citizen\\common\\data\\ui\\";
             }
+
+            return string.IsNullOrEmpty(fivemFolder) ? GetStaticFivemFolder() : fivemFolder;
+        }
+
+        private static string GetStaticFivemFolder()
+        {
+            var localAppData = Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData);
+            var fivemFolder = $"{localAppData}\\FiveM\\FiveM.app\\citizen\\common\\data\\ui\\";
+            return fivemFolder;
         }
     }
 
