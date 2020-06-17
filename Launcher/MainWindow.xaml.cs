@@ -69,8 +69,8 @@ namespace Launcher
                 _timerCheats.Tick += CloseCheats;
                 _timerSetOnline.Tick += SetOnline;
                 _timerGetOnlinePlayers.Tick += GetOnlinePlayers;
-                
-                UpdateKontrolEdildi();
+
+                Task.Run(RunWithoutUpdateCheck);
             }
             else
             {
@@ -155,6 +155,23 @@ namespace Launcher
                     ShowWarning("Harita dosyaları kopyalanamadı.");
                 }
             });
+        }
+
+        private async Task RunWithoutUpdateCheck()
+        {
+            var exePath = Assembly.GetExecutingAssembly().Location;
+
+            var updater = new UpdateManager(LauncherUpdateURL, exePath);
+            _globalVariables = await updater.CheckUpdate();
+
+            if (_globalVariables == null)
+            {
+                ShowError("Launcher bilgilerini okuyamadım. İnternet bağlantınızda veya sunucumuzda sorun olabilir.");
+            }
+            else
+            {
+                UpdateKontrolEdildi();
+            }
         }
 
         private async Task UpdateControl()
