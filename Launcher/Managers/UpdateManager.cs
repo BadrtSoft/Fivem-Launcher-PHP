@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
 using System.IO.Compression;
@@ -15,6 +16,8 @@ namespace Launcher.Managers
         private string UpdateURL { get; }
         private string ExeLocation { get; }
         private string WorkingDirectory { get; }
+
+        private string appData;
 
         private UpdateObject UpdateResponse { get; set; }
 
@@ -33,6 +36,22 @@ namespace Launcher.Managers
 
         public async Task<bool> DownloadUpdate()
         {
+            appData = Environment.GetFolderPath(Environment.SpecialFolder.CommonApplicationData);
+
+            appData += "\\GormYa";
+            if (!Directory.Exists(appData))
+            {
+                Directory.CreateDirectory(appData);
+            }
+
+            appData += "\\Launcher";
+            if (!Directory.Exists(appData))
+            {
+                Directory.CreateDirectory(appData);
+            }
+
+            appData += "\\";
+
             var fileSegments = UpdateResponse.UpdateFile.Replace("\\", "/").Split('/');
             var updateFileName = fileSegments.Last();
 
@@ -46,7 +65,7 @@ namespace Launcher.Managers
             {
                 using (var webClient = new WebClient())
                 {
-                    await webClient.DownloadFileTaskAsync(UpdateResponse.UpdateFile, updateFileName);
+                    await webClient.DownloadFileTaskAsync(UpdateResponse.UpdateFile, $"{appData}{updateFileName}");
                 }
             }
             catch
@@ -57,7 +76,7 @@ namespace Launcher.Managers
             var downloadedFiles = new List<string>();
             try
             {
-                using (var zipArchive = ZipFile.OpenRead(updateFileName))
+                using (var zipArchive = ZipFile.OpenRead($"{appData}{updateFileName}"))
                 {
                     foreach (var archiveEntry in zipArchive.Entries)
                     {
@@ -70,7 +89,7 @@ namespace Launcher.Managers
                         }
                         else
                         {
-                            archiveEntry.ExtractToFile($"{archiveEntry.FullName}.update", true);
+                            archiveEntry.ExtractToFile($"{appData}{archiveEntry.FullName}.update", true);
                             downloadedFiles.Add($"{archiveEntry.FullName.Replace("/", "\\")}.update");
                         }
                     }
@@ -78,11 +97,11 @@ namespace Launcher.Managers
             }
             catch
             {
-                File.Delete(updateFileName);
+                File.Delete($"{appData}{updateFileName}");
                 return false;
             }
 
-            File.Delete(updateFileName);
+            File.Delete($"{appData}{updateFileName}");
 
             if (downloadedFiles.Count <= 0)
             {
@@ -110,23 +129,25 @@ namespace Launcher.Managers
                     updatedFileName = downloadedFile.Replace("_Update.", ".");
                 }
 
-                sb.AppendLine($"MOVE \"{WorkingDirectory}\\{downloadedFile}\" \"{WorkingDirectory}\\{updatedFileName}\"");
+                sb.AppendLine($"MOVE \"{appData}{downloadedFile}\" \"{WorkingDirectory}\\{updatedFileName}\"");
             }
 
-            sb.AppendLine($"DEL \"%~f0\" & START \"\" /B /MAX \"{fileName}\" -updated");
+            sb.AppendLine($"DEL \"%~f0\" & START \"\" /B /MAX \"{WorkingDirectory}\\{fileName}\" -updated");
 
-            File.WriteAllText($"{WorkingDirectory}\\Update.bat", sb.ToString());
+            File.WriteAllText($"{appData}\\Update.bat", sb.ToString());
 
             return true;
         }
 
         public void InstallUpdate()
         {
-            var startInfo = new ProcessStartInfo($"{WorkingDirectory}\\Update.bat")
+            var startInfo = new ProcessStartInfo($"{appData}\\Update.bat")
             {
                 CreateNoWindow = true,
-                UseShellExecute = false,
-                WorkingDirectory = WorkingDirectory ?? string.Empty
+                UseShellExecute = true,
+                WorkingDirectory = appData ?? string.Empty,
+                WindowStyle = ProcessWindowStyle.Hidden,
+                Verb = "runas"
             };
 
             Process.Start(startInfo);
