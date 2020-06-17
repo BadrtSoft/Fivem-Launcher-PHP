@@ -437,9 +437,29 @@ namespace Launcher
                 {
                     GetSteamHex().ContinueWith(StartFivem);
                 }
+                else if (task.Result == "0")
+                {
+                    MessageBox.Show("Sunucu kaydın yapılamadı. Yöneticiye başvur. Code: 0", MessageTitle, MessageBoxButton.OK, MessageBoxImage.Error);
+                }
+                else if (task.Result == "-1")
+                {
+                    MessageBox.Show("Şu an oyunda gözüküyorsun. Tekrar bağlanamazsın.", MessageTitle, MessageBoxButton.OK, MessageBoxImage.Error);
+                }
+                else if (task.Result == "-3")
+                {
+                    MessageBox.Show("Sunucunun izinli listesine (whitelist) ekli değilsin.", MessageTitle, MessageBoxButton.OK, MessageBoxImage.Error);
+                }
+                else if (task.Result == "-4")
+                {
+                    MessageBox.Show("Oyundan yeni çıktın ve kontrollerin devam ediyor. 1 dk sonra tekrar bağlanabilirsin.", MessageTitle, MessageBoxButton.OK, MessageBoxImage.Error);
+                }
+                else if (task.Result == "-5")
+                {
+                    MessageBox.Show("Daha önce hile olarak işaretlendiğin için bir yönetici seni onaylayana kadar oyuna bağlanamazsın.", MessageTitle, MessageBoxButton.OK, MessageBoxImage.Error);
+                }
                 else
                 {
-                    MessageBox.Show("Sunucu kaydınız yapılamadı. Daha sonra tekrar deneyin.");
+                    MessageBox.Show($"Sunucu kaydın yapılamadı. Daha sonra tekrar deneyin. Code: {task.Result}", MessageTitle, MessageBoxButton.OK, MessageBoxImage.Error);
                 }
             });
         }
