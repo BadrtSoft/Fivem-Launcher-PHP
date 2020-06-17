@@ -469,8 +469,11 @@ namespace Launcher
         {
             if (!BtnLaunch.IsEnabled)
             {
-                e.Cancel = MessageBox.Show($"Launcher kapatırsanız, Fivem de kapanacak.{Environment.NewLine}Emin misiniz?", MessageTitle, MessageBoxButton.YesNo, MessageBoxImage.Question) != MessageBoxResult.Yes;
-                return;
+                if (MessageBox.Show($"Launcher kapatırsanız, Fivem de kapanacak.{Environment.NewLine}Emin misiniz?", MessageTitle, MessageBoxButton.YesNo, MessageBoxImage.Question) != MessageBoxResult.Yes)
+                {
+                    e.Cancel = true;
+                    return;
+                }
             }
 
             FivemManager.KillFivem();
