@@ -1,0 +1,1 @@
+ALTER TABLE `LauncherStatuses` ADD cheat_name varchar(255) NULL AFTER `status`;
