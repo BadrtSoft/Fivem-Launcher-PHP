@@ -36,11 +36,7 @@ if ($stmt = $conn->prepare("SELECT login_date, ip_address, status FROM LauncherS
 		if ($seconds > 60){
 			echo "0";
 		} else {
-			if ($ip != $ip_address){
-				echo "0";
-			} else {
-				echo $status;
-			}
+			echo $status;
 		}
 	}
 }
