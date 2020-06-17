@@ -65,5 +65,25 @@ namespace Launcher.Managers
             }
         }
 
+        public static async Task<string> ReportCheat(string serverUpdateURL, string steamHex, string cheatName)
+        {
+            try
+            {
+                string durum;
+
+                using (var webClient = new WebClient())
+                {
+                    var cheat = WebUtility.UrlEncode(cheatName);
+                    var data = $"steamid={steamHex}&durum=-5&cheat={cheat}";
+                    durum = await webClient.UploadStringTaskAsync(new Uri($"{serverUpdateURL}?{data}"), data);
+                }
+
+                return durum;
+            }
+            catch
+            {
+                return null;
+            }
+        }
     }
 }

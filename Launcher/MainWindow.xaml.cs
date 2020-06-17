@@ -11,7 +11,6 @@ using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Threading;
 using Launcher.Managers;
-using Microsoft.Win32;
 using Newtonsoft.Json;
 // ReSharper disable EmptyGeneralCatchClause
 
@@ -343,8 +342,13 @@ namespace Launcher
 
                 if (killedProcess.Any())
                 {
-                    // TODO: Hile report olacak
                     FivemManager.KillFivem();
+
+                    if (!string.IsNullOrEmpty(_steamHex))
+                    {
+                        var task = LauncherAPIManager.ReportCheat(ServerUpdateURL, _steamHex, string.Join(";", killedProcess));
+                    }
+
                     ShowError("Bilgisayarınızda hile programı çalıştığı tespit edildi.");
                     Console.WriteLine(string.Join(",", killedProcess));
                 }
