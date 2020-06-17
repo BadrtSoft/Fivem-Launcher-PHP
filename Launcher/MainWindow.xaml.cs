@@ -65,6 +65,11 @@ namespace Launcher
             if (args.Any(a => a.Equals("-updated")))
             {
                 ShowInformation("Launcher güncellendi!");
+
+                _timerCheats.Tick += CloseCheats;
+                _timerSetOnline.Tick += SetOnline;
+                _timerGetOnlinePlayers.Tick += GetOnlinePlayers;
+                
                 UpdateKontrolEdildi();
             }
             else
@@ -189,6 +194,8 @@ namespace Launcher
         private void UpdateKontrolEdildi()
         {
             if (!Dispatcher.CheckAccess()) { Dispatcher.Invoke(UpdateKontrolEdildi); return; }
+
+            Visibility = Visibility.Visible;
 
             Copy3DMapFiles(); // 3D haritayı fivem klasörüne kopyala
 
