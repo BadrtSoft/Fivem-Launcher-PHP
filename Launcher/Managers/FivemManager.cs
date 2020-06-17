@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Diagnostics;
+using System.IO;
 using Microsoft.Win32;
 using Newtonsoft.Json;
 // ReSharper disable EmptyGeneralCatchClause
@@ -25,7 +26,20 @@ namespace Launcher.Managers
             var fivemFolder = cmd.Contains(" ") ? cmd.Split(' ')[0].Replace("\"", string.Empty) : cmd.Replace("\"", string.Empty);
             if (!string.IsNullOrEmpty(fivemFolder) && fivemFolder.Length > 10)
             {
-                fivemFolder = $"{fivemFolder.Substring(0, fivemFolder.Length - 10)}\\FiveM.app\\citizen\\common\\data\\ui\\";
+                var excludeExe = fivemFolder.Substring(0, fivemFolder.Length - 10);
+
+                if (Directory.Exists($"{excludeExe}\\citizen\\common\\data\\ui\\"))
+                {
+                    fivemFolder = $"{excludeExe}\\citizen\\common\\data\\ui\\";
+                }
+                else if (Directory.Exists($"{excludeExe}\\FiveM.app\\citizen\\common\\data\\ui\\"))
+                {
+                    fivemFolder = $"{excludeExe}\\FiveM.app\\citizen\\common\\data\\ui\\";
+                }
+                else
+                {
+                    fivemFolder = string.Empty;
+                }
             }
 
             return string.IsNullOrEmpty(fivemFolder) ? GetStaticFivemFolder() : fivemFolder;
