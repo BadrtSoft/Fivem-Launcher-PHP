@@ -59,6 +59,13 @@ namespace Launcher
 
         private void Window_Loaded(object sender, RoutedEventArgs e)
         {
+            if (LauncherManager.IsAdministrator())
+            {
+                LauncherManager.RunAsNormalUser(Assembly.GetExecutingAssembly().Location);
+                Process.GetCurrentProcess().Kill();
+                return;
+            }
+
             FivemManager.KillFivem();
 
             var args = Environment.GetCommandLineArgs();

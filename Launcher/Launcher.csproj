@@ -92,6 +92,7 @@
     </ApplicationDefinition>
     <Compile Include="Managers\FivemManager.cs" />
     <Compile Include="Managers\LauncherAPIManager.cs" />
+    <Compile Include="Managers\LauncherManager.cs" />
     <Compile Include="Resource1.Designer.cs">
       <AutoGen>True</AutoGen>
       <DesignTime>True</DesignTime>
