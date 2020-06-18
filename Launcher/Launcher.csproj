@@ -62,9 +62,6 @@
     <Prefer32Bit>true</Prefer32Bit>
   </PropertyGroup>
   <ItemGroup>
-    <Reference Include="Hardcodet.Wpf.TaskbarNotification, Version=1.0.5.0, Culture=neutral, processorArchitecture=MSIL">
-      <HintPath>..\packages\Hardcodet.NotifyIcon.Wpf.1.0.8\lib\net451\Hardcodet.Wpf.TaskbarNotification.dll</HintPath>
-    </Reference>
     <Reference Include="Newtonsoft.Json, Version=12.0.0.0, Culture=neutral, PublicKeyToken=30ad4fe6b2a6aeed, processorArchitecture=MSIL">
       <HintPath>..\packages\Newtonsoft.Json.12.0.3\lib\net45\Newtonsoft.Json.dll</HintPath>
     </Reference>
@@ -98,6 +95,27 @@
     <Compile Include="Managers\FivemManager.cs" />
     <Compile Include="Managers\LauncherAPIManager.cs" />
     <Compile Include="Managers\LauncherManager.cs" />
+    <Compile Include="NotifyIcon\BalloonIcon.cs" />
+    <Compile Include="NotifyIcon\Interop\AppBarInfo.cs" />
+    <Compile Include="NotifyIcon\Interop\BalloonFlags.cs" />
+    <Compile Include="NotifyIcon\Interop\IconDataMembers.cs" />
+    <Compile Include="NotifyIcon\Interop\IconState.cs" />
+    <Compile Include="NotifyIcon\Interop\MouseEvent.cs" />
+    <Compile Include="NotifyIcon\Interop\NotifyCommand.cs" />
+    <Compile Include="NotifyIcon\Interop\NotifyIconData.cs" />
+    <Compile Include="NotifyIcon\Interop\NotifyIconVersion.cs" />
+    <Compile Include="NotifyIcon\Interop\Point.cs" />
+    <Compile Include="NotifyIcon\Interop\SystemInfo.cs" />
+    <Compile Include="NotifyIcon\Interop\TrayInfo.cs" />
+    <Compile Include="NotifyIcon\Interop\WinApi.cs" />
+    <Compile Include="NotifyIcon\Interop\WindowClass.cs" />
+    <Compile Include="NotifyIcon\Interop\WindowMessageSink.cs" />
+    <Compile Include="NotifyIcon\Interop\WindowsMessages.cs" />
+    <Compile Include="NotifyIcon\PopupActivationMode.cs" />
+    <Compile Include="NotifyIcon\RoutedEventHelper.cs" />
+    <Compile Include="NotifyIcon\TaskbarIcon.cs" />
+    <Compile Include="NotifyIcon\TaskbarIconDeclarations.cs" />
+    <Compile Include="NotifyIcon\Util.cs" />
     <Compile Include="SharedInfo.cs">
       <AutoGen>True</AutoGen>
       <DesignTime>True</DesignTime>

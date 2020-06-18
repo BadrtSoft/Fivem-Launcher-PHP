@@ -10,8 +10,8 @@ using System.Threading;
 using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Threading;
-using Hardcodet.Wpf.TaskbarNotification;
 using Launcher.Managers;
+using Launcher.NotifyIcon;
 
 // ReSharper disable EmptyGeneralCatchClause
 
