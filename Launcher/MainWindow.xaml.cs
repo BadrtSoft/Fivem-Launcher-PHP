@@ -59,16 +59,25 @@ namespace Launcher
 
         private void Window_Loaded(object sender, RoutedEventArgs e)
         {
+            var args = Environment.GetCommandLineArgs();
+
             if (LauncherManager.IsAdministrator())
             {
-                LauncherManager.RunAsNormalUser(Assembly.GetExecutingAssembly().Location);
+                if (args.Any(a => a.Equals("-user")))
+                {
+                    ShowError("Launcher yönetici olarak çalışamaz. Kullanıcı hakları ile tekrardan çalıştır.");
+                }
+                else
+                {
+                    LauncherManager.RunAsNormalUser(Assembly.GetExecutingAssembly().Location);
+                }
+
                 Process.GetCurrentProcess().Kill();
                 return;
             }
 
             FivemManager.KillFivem();
 
-            var args = Environment.GetCommandLineArgs();
             if (args.Any(a => a.Equals("-updated")))
             {
                 ShowInformation("Launcher güncellendi!");

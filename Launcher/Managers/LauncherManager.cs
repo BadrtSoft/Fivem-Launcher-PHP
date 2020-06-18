@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Diagnostics;
 using System.IO;
 using System.Runtime.InteropServices;
 using System.Security.Principal;
@@ -93,8 +94,6 @@ namespace Launcher.Managers
             public IntPtr hStdError;
         }
 
-        [DllImport("kernel32.dll", ExactSpelling = true)]
-        private static extern IntPtr GetCurrentProcess();
 
         [DllImport("advapi32.dll", ExactSpelling = true, SetLastError = true)]
         private static extern bool OpenProcessToken(IntPtr h, int acc, ref IntPtr phtok);
@@ -108,7 +107,6 @@ namespace Launcher.Managers
         [DllImport("kernel32.dll", CharSet = CharSet.Auto, SetLastError = true)]
         [return: MarshalAs(UnmanagedType.Bool)]
         private static extern bool CloseHandle(IntPtr hObject);
-
 
         [DllImport("user32.dll")]
         private static extern IntPtr GetShellWindow();
@@ -124,7 +122,6 @@ namespace Launcher.Managers
 
         [DllImport("advapi32", SetLastError = true, CharSet = CharSet.Unicode)]
         private static extern bool CreateProcessWithTokenW(IntPtr hToken, int dwLogonFlags, string lpApplicationName, string lpCommandLine, int dwCreationFlags, IntPtr lpEnvironment, string lpCurrentDirectory, [In] ref STARTUPINFO lpStartupInfo, out PROCESS_INFORMATION lpProcessInformation);
-
         #endregion
 
         public static void RunAsNormalUser(string fileName)
@@ -133,16 +130,28 @@ namespace Launcher.Managers
 
             try
             {
-                var process = GetCurrentProcess();
-                if (!OpenProcessToken(process, 0x0020, ref hProcessToken)) return;
+                var process = Process.GetCurrentProcess().Handle;
+                if (!OpenProcessToken(process, 0x0020, ref hProcessToken))
+                {
+                    Process.Start(fileName, "-user");
+                    return;
+                }
 
                 var tkp = new TOKEN_PRIVILEGES { PrivilegeCount = 1, Privileges = new LUID_AND_ATTRIBUTES[1] };
 
-                if (!LookupPrivilegeValue(null, "SeIncreaseQuotaPrivilege", ref tkp.Privileges[0].Luid)) return;
+                if (!LookupPrivilegeValue(null, "SeIncreaseQuotaPrivilege", ref tkp.Privileges[0].Luid))
+                {
+                    Process.Start(fileName, "-user");
+                    return;
+                }
 
                 tkp.Privileges[0].Attributes = 0x00000002;
 
-                if (!AdjustTokenPrivileges(hProcessToken, false, ref tkp, 0, IntPtr.Zero, IntPtr.Zero)) return;
+                if (!AdjustTokenPrivileges(hProcessToken, false, ref tkp, 0, IntPtr.Zero, IntPtr.Zero))
+                {
+                    Process.Start(fileName, "-user");
+                    return;
+                }
             }
             finally
             {
@@ -150,28 +159,51 @@ namespace Launcher.Managers
             }
 
             var hwnd = GetShellWindow();
-            if (hwnd == IntPtr.Zero) return;
+            if (hwnd == IntPtr.Zero)
+            {
+                Process.Start(fileName, "-user");
+                return;
+            }
 
             var hShellProcess = IntPtr.Zero;
             var hShellProcessToken = IntPtr.Zero;
             var hPrimaryToken = IntPtr.Zero;
+
             try
             {
-                uint dwPID;
-                if (GetWindowThreadProcessId(hwnd, out dwPID) == 0)  return;
+                if (GetWindowThreadProcessId(hwnd, out var dwPID) == 0)
+                {
+                    Process.Start(fileName, "-user");
+                    return;
+                }
 
                 hShellProcess = OpenProcess(ProcessAccessFlags.QueryInformation, false, dwPID);
-                if (hShellProcess == IntPtr.Zero) return;
+                if (hShellProcess == IntPtr.Zero)
+                {
+                    Process.Start(fileName, "-user");
+                    return;
+                }
 
-                if (!OpenProcessToken(hShellProcess, 0x0002, ref hShellProcessToken)) return;
+                if (!OpenProcessToken(hShellProcess, 0x0002, ref hShellProcessToken))
+                {
+                    Process.Start(fileName, "-user");
+                    return;
+                }
 
                 var dwTokenRights = 395U;
-
-                if (!DuplicateTokenEx(hShellProcessToken, dwTokenRights, IntPtr.Zero, SECURITY_IMPERSONATION_LEVEL.SecurityImpersonation, TOKEN_TYPE.TokenPrimary, out hPrimaryToken)) return;
+                if (!DuplicateTokenEx(hShellProcessToken, dwTokenRights, IntPtr.Zero, SECURITY_IMPERSONATION_LEVEL.SecurityImpersonation, TOKEN_TYPE.TokenPrimary, out hPrimaryToken))
+                {
+                    Process.Start(fileName, "-user");
+                    return;
+                }
 
                 var si = new STARTUPINFO();
                 var pi = new PROCESS_INFORMATION();
-                if (!CreateProcessWithTokenW(hPrimaryToken, 0, fileName, "", 0, IntPtr.Zero, Path.GetDirectoryName(fileName), ref si, out pi)) return;
+                if (!CreateProcessWithTokenW(hPrimaryToken, 0, fileName, "-user", 0, IntPtr.Zero, Path.GetDirectoryName(fileName), ref si, out pi))
+                {
+                    Process.Start(fileName, "-user");
+                    return;
+                }
             }
             finally
             {
@@ -179,7 +211,6 @@ namespace Launcher.Managers
                 CloseHandle(hPrimaryToken);
                 CloseHandle(hShellProcess);
             }
-
         }
 
         public static bool IsAdministrator()
