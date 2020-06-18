@@ -9,12 +9,10 @@ using System.Runtime.InteropServices;
 using System.Threading;
 using System.Threading.Tasks;
 using System.Windows;
-using System.Windows.Input;
-using System.Windows.Media;
 using System.Windows.Threading;
 using Hardcodet.Wpf.TaskbarNotification;
 using Launcher.Managers;
-using Newtonsoft.Json;
+
 // ReSharper disable EmptyGeneralCatchClause
 
 namespace Launcher
@@ -32,6 +30,7 @@ namespace Launcher
         private const string ServerUpdateURL = "https://yalc.in/fivem_launcher/guncelle.php";
         private const string ServerCheckURL = "https://yalc.in/fivem_launcher/kontrol.php";
         private const string SteamProxyURL = "https://yalc.in/fivem_launcher/steamProxy.php";
+        private const string ServerOnlineURL = "https://yalc.in/fivem_launcher/online.php";
         private const string MessageTitle = "GormYa Launcher";
 
         private string _steamHex;
@@ -244,11 +243,7 @@ namespace Launcher
             CloseCheats(null, null); // Çalışan hile programı var mı kontrol et
 
             _timerCheats.Start();
-
-            if (!string.IsNullOrEmpty(_globalVariables.ServerCode))
-            {
-                _timerGetOnlinePlayers.Start();
-            }
+            _timerGetOnlinePlayers.Start();
         }
 
         private void RenderUI(Task<string> task)
@@ -268,14 +263,10 @@ namespace Launcher
             {
                 BtnTeamspeak.Visibility = Visibility.Visible;
             }
+            
+            LblOnline.Visibility = Visibility.Visible;
 
-            // Server code boş değilse online sayısını göster
-            if (!string.IsNullOrEmpty(_globalVariables?.ServerCode))
-            {
-                LblOnline.Visibility = Visibility.Visible;
-            }
-
-            // Server boş değilse butonunu göster
+                // Server boş değilse butonunu göster
             if (!string.IsNullOrEmpty(_globalVariables?.Server))
             {
                 BtnLaunch.Visibility = Visibility.Visible;
@@ -437,11 +428,10 @@ namespace Launcher
                 {
                     using (var webClient = new WebClient())
                     {
-                        webClient.DownloadStringTaskAsync(new Uri($"https://servers-frontend.fivem.net/api/servers/single/{_globalVariables.ServerCode}"))
+                        webClient.DownloadStringTaskAsync(new Uri(ServerOnlineURL))
                             .ContinueWith(task =>
                             {
-                                var obj = JsonConvert.DeserializeObject<FivemApi>(task.Result);
-                                Dispatcher.Invoke(delegate { LblOnline.Content = $"Online: {obj.Data.Clients}"; });
+                                Dispatcher.Invoke(delegate { LblOnline.Content = $"Online: {task.Result}"; });
                             });
                     }
                 }
@@ -533,7 +523,7 @@ namespace Launcher
 
             if (_timerSetOnline.IsEnabled) _timerSetOnline.Stop();
 
-            if (!string.IsNullOrEmpty(_globalVariables.ServerCode) && !_timerGetOnlinePlayers.IsEnabled) _timerGetOnlinePlayers.Start();
+            if (!_timerGetOnlinePlayers.IsEnabled) _timerGetOnlinePlayers.Start();
         }
 
         private void Window_Closing(object sender, System.ComponentModel.CancelEventArgs e)

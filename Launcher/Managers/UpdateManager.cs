@@ -171,9 +171,6 @@ namespace Launcher.Managers
         [JsonProperty("teamspeak3")]
         public string Teamspeak3 { get; set; }
 
-        [JsonProperty("server_code")]
-        public string ServerCode { get; set; }
-
         [JsonProperty("cheats")]
         public string[] Cheats { get; set; }
     }
