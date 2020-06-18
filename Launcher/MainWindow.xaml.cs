@@ -9,7 +9,10 @@ using System.Runtime.InteropServices;
 using System.Threading;
 using System.Threading.Tasks;
 using System.Windows;
+using System.Windows.Input;
+using System.Windows.Media;
 using System.Windows.Threading;
+using Hardcodet.Wpf.TaskbarNotification;
 using Launcher.Managers;
 using Newtonsoft.Json;
 // ReSharper disable EmptyGeneralCatchClause
@@ -40,6 +43,10 @@ namespace Launcher
         private readonly DispatcherTimer _timerCheats = new DispatcherTimer { Interval = TimeSpan.FromSeconds(60), IsEnabled = false }; // 60 saniyede bir hile korumasını çalıştır
         private readonly DispatcherTimer _timerSetOnline = new DispatcherTimer { Interval = TimeSpan.FromSeconds(25), IsEnabled = false }; // 25 saniyede bir sunucudaki oyuncunun giriş tarihini güncelle
         private readonly DispatcherTimer _timerGetOnlinePlayers = new DispatcherTimer { Interval = TimeSpan.FromSeconds(10), IsEnabled = false }; // 10 saniyede bir sunucudaki oyuncunun giriş tarihini güncelle
+
+        static readonly WindowVisibilityCommand WindowVisibilityCmd = new WindowVisibilityCommand();
+
+        readonly TaskbarIcon _ni = new TaskbarIcon { Icon = Properties.Resources.fivem, ToolTipText = "Launcher açmak/kapatmak için çift tıkla", DoubleClickCommand = WindowVisibilityCmd, Visibility = Visibility.Visible };
 
         public MainWindow()
         {
