@@ -1,2 +1,4 @@
 language: csharp
 solution: FivemLauncher.sln
+install:
+  - nuget restore FivemLauncher.sln
