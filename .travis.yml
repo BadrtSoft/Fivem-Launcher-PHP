@@ -1,2 +1,3 @@
 language: csharp
+os: window
 solution: FivemLauncher.sln
