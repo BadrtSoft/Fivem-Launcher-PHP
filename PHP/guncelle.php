@@ -5,6 +5,7 @@ if (empty($_GET['steamid']) || empty($_GET['durum'])){
 	die("-2");
 }
 
+$cheat = $_GET['cheat'];
 $steamid = $_GET['steamid'];
 $durum = $_GET['durum'];
 
@@ -27,8 +28,8 @@ if (mysqli_connect_errno()) {
 			if ($use_whitelist){
 				echo "-3";
 			} else {
-				$query = $conn->prepare("INSERT INTO LauncherStatuses (`steamid`, `login_date`, `ip_address`, `status`) VALUES (?, NOW(), ?, ?)");
-				$query->bind_param('sss', $steamid, $ip, $durum);
+				$query = $conn->prepare("INSERT INTO LauncherStatuses (`steamid`, `login_date`, `ip_address`, `status`) VALUES (?, ?, ?, ?)");
+				$query->bind_param('ssss', $steamid, date('Y-m-d H:i:s'), $ip, $durum);
 				$query->execute();
 				$query->close();
 				
@@ -38,16 +39,21 @@ if (mysqli_connect_errno()) {
 		else {
 			if ($status == -1 || $status == -4 || $status == 0 || $status == -5) {
 				if ($status == -5) {
+					$query = $conn->prepare("UPDATE LauncherStatuses SET login_date=? WHERE steamid=?");
+					$query->bind_param('ss', date('Y-m-d H:i:s'), $steamid);
+					$query->execute();
+					$query->close();
+					
 					echo("-5");
 				} else {
-					if (!empty($_GET['cheat'])) {
-						$query = $conn->prepare("UPDATE LauncherStatuses SET login_date=NOW(), status=?, cheat_name=? WHERE steamid=?");
-						$query->bind_param('sss', $durum, $_GET['cheat'], $steamid);
+					if (!empty($cheat)) {
+						$query = $conn->prepare("UPDATE LauncherStatuses SET login_date=?, status=?, cheat_name=? WHERE steamid=?");
+						$query->bind_param('ssss', date('Y-m-d H:i:s'), $durum, $cheat, $steamid);
 						$query->execute();
 						$query->close();
 					} else {
-						$query = $conn->prepare("UPDATE LauncherStatuses SET login_date=NOW(), status=? WHERE steamid=?");
-						$query->bind_param('ss', $durum, $steamid);
+						$query = $conn->prepare("UPDATE LauncherStatuses SET login_date=?, status=? WHERE steamid=?");
+						$query->bind_param('sss', date('Y-m-d H:i:s'), $durum, $steamid);
 						$query->execute();
 						$query->close();
 					}
@@ -55,8 +61,8 @@ if (mysqli_connect_errno()) {
 					echo $durum;
 				}
 			} else {
-				$query = $conn->prepare("UPDATE LauncherStatuses SET login_date=NOW(), ip_address=?, status=? WHERE steamid=?");
-				$query->bind_param('sss', $ip, $durum, $steamid);
+				$query = $conn->prepare("UPDATE LauncherStatuses SET login_date=?, ip_address=?, status=? WHERE steamid=?");
+				$query->bind_param('ssss', date('Y-m-d H:i:s'), $ip, $durum, $steamid);
 				$query->execute();
 				$query->close();
 				echo $durum;

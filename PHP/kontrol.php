@@ -15,6 +15,13 @@ $conn = new mysqli($db_addr, $db_user, $db_pass, $db_name);
 if (mysqli_connect_errno()) {
 	die("-2");
 } else {
+	$olderDate = new DateTime();
+	$olderDate->add(DateInterval::createFromDateString('-1 minute'));
+	
+	$query = $conn->prepare("UPDATE LauncherStatuses SET status=0 WHERE status!=-5 AND login_date < '" . $olderDate->format('Y-m-d H:i:s') . "'");
+	$query->execute();
+	$query->close();
+	
 	if ($stmt = $conn->prepare("SELECT login_date, ip_address, status FROM LauncherStatuses WHERE steamid=? LIMIT 1")) {
 		$stmt->bind_param("s", $steamid);
 		$stmt->execute();
@@ -30,15 +37,7 @@ if (mysqli_connect_errno()) {
 			}
 		}
 		else{
-			$date = new DateTime();
-			$date2 = new DateTime($login_date);
-			$seconds = $date->getTimestamp() - $date2->getTimestamp();
-			
-			if ($seconds > 60){
-				echo "0";
-			} else {
-				echo $status;
-			}
+			echo $status;
 		}
 	}
 
