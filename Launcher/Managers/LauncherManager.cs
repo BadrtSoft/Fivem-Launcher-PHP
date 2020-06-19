@@ -6,8 +6,11 @@ using System.Security.Principal;
 
 namespace Launcher.Managers
 {
-    public class LauncherManager
+    public static class LauncherManager
     {
+        [DllImport("user32.dll")]
+        private static extern int SendMessage(int hWnd, uint Msg, int wParam, int lParam);
+
         #region Interops
         private struct TOKEN_PRIVILEGES
         {
@@ -218,6 +221,25 @@ namespace Launcher.Managers
             var identity = WindowsIdentity.GetCurrent();
             var principal = new WindowsPrincipal(identity);
             return principal.IsInRole(WindowsBuiltInRole.Administrator);
+        }
+
+        public static void KillGorm(this Process process)
+        {
+            try
+            {
+                process.Kill();
+            }
+            catch
+            {
+                try
+                {
+                    SendMessage(process.MainWindowHandle.ToInt32(), 0x0112, 0xF060, 0);
+                }
+                catch
+                {
+                    // ignored
+                }
+            }
         }
     }
 }

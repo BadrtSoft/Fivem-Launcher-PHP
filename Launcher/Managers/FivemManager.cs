@@ -1,7 +1,7 @@
 ﻿using System;
 using System.Diagnostics;
 using System.IO;
-using System.Runtime.InteropServices;
+using System.Linq;
 using Microsoft.Win32;
 using Newtonsoft.Json;
 // ReSharper disable EmptyGeneralCatchClause
@@ -10,15 +10,12 @@ namespace Launcher.Managers
 {
     public static class FivemManager
     {
-        [DllImport("user32.dll")]
-        public static extern int SendMessage(int hWnd, uint Msg, int wParam, int lParam);
-
         public static void KillFivem()
         {
             var fivemProcess = Process.GetProcessesByName("fivem");
             foreach (var process in fivemProcess)
             {
-                try { process.Kill(); } catch { try { SendMessage(process.MainWindowHandle.ToInt32(), 0x0112, 0xF060, 0); } catch { } }
+                process.KillGorm();
             }
         }
 
@@ -57,6 +54,19 @@ namespace Launcher.Managers
             var localAppData = Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData);
             var fivemFolder = $"{localAppData}\\FiveM\\FiveM.app\\citizen\\common\\data\\ui\\";
             return fivemFolder;
+        }
+
+        public static int GetModuleCount()
+        {
+            try
+            {
+                var fivemProcess = Process.GetProcessesByName("fivem");
+                return fivemProcess.Select(process => process.Modules.Count).FirstOrDefault();
+            }
+            catch
+            {
+                return 0;
+            }
         }
     }
 

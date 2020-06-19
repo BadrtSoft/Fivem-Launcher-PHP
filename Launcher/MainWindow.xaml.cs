@@ -5,7 +5,6 @@ using System.IO;
 using System.Linq;
 using System.Net;
 using System.Reflection;
-using System.Runtime.InteropServices;
 using System.Threading;
 using System.Threading.Tasks;
 using System.Windows;
@@ -22,10 +21,6 @@ namespace Launcher
     /// </summary>
     public partial class MainWindow : Window
     {
-        [DllImport("user32.dll")]
-        public static extern int SendMessage(int hWnd, uint Msg, int wParam, int lParam);
-
-
         private const string LauncherUpdateURL = "https://yalc.in/fivem_launcher/update.php";
         private const string ServerUpdateURL = "https://yalc.in/fivem_launcher/guncelle.php";
         private const string ServerCheckURL = "https://yalc.in/fivem_launcher/kontrol.php";
@@ -36,16 +31,13 @@ namespace Launcher
         private string _steamHex;
         private UpdateObject _globalVariables;
         private readonly bool _isLocal;
-
         private bool _steamYeniAcildi;
 
         private readonly DispatcherTimer _timerCheats = new DispatcherTimer { Interval = TimeSpan.FromSeconds(60), IsEnabled = false }; // 60 saniyede bir hile korumasını çalıştır
         private readonly DispatcherTimer _timerSetOnline = new DispatcherTimer { Interval = TimeSpan.FromSeconds(25), IsEnabled = false }; // 25 saniyede bir sunucudaki oyuncunun giriş tarihini güncelle
         private readonly DispatcherTimer _timerGetOnlinePlayers = new DispatcherTimer { Interval = TimeSpan.FromSeconds(10), IsEnabled = false }; // 10 saniyede bir sunucudaki oyuncunun giriş tarihini güncelle
-
-        static readonly WindowVisibilityCommand WindowVisibilityCmd = new WindowVisibilityCommand();
-
-        readonly TaskbarIcon _ni = new TaskbarIcon { Icon = Properties.Resources.fivem, ToolTipText = "Launcher açmak/kapatmak için çift tıkla", DoubleClickCommand = WindowVisibilityCmd, Visibility = Visibility.Visible };
+        private static readonly WindowVisibilityCommand WindowVisibilityCmd = new WindowVisibilityCommand();
+        private readonly TaskbarIcon _ni = new TaskbarIcon { Icon = Properties.Resources.fivem, ToolTipText = "Launcher açmak/kapatmak için çift tıkla", DoubleClickCommand = WindowVisibilityCmd, Visibility = Visibility.Visible };
 
         public MainWindow()
         {
@@ -71,14 +63,14 @@ namespace Launcher
             {
                 if (args.Any(a => a.Equals("-user")))
                 {
-                    ShowError("Launcher yönetici olarak çalışamaz. Kullanıcı hakları ile tekrardan çalıştır.");
+                    ShowError("Launcher yönetici olarak çalışamaz. Kullanıcı hakları ile tekrardan çalıştır. UAC devre dışı ise, UAC açmalısın. Hiç UAC kapatılır mı, virüs bulaşır sonra :)");
                 }
                 else
                 {
                     LauncherManager.RunAsNormalUser(Assembly.GetExecutingAssembly().Location);
                 }
 
-                Process.GetCurrentProcess().Kill();
+                Process.GetCurrentProcess().KillGorm();
                 return;
             }
 
@@ -263,10 +255,10 @@ namespace Launcher
             {
                 BtnTeamspeak.Visibility = Visibility.Visible;
             }
-            
+
             LblOnline.Visibility = Visibility.Visible;
 
-                // Server boş değilse butonunu göster
+            // Server boş değilse butonunu göster
             if (!string.IsNullOrEmpty(_globalVariables?.Server))
             {
                 BtnLaunch.Visibility = Visibility.Visible;
@@ -349,7 +341,7 @@ namespace Launcher
             Task.Run(() =>
             {
                 var controlledProcess = 0;
-                List<string> killedProcess = new List<string>();
+                var killedProcess = new List<string>();
 
                 var processes = Process.GetProcesses();
                 foreach (var process in processes)
@@ -357,13 +349,12 @@ namespace Launcher
                     var processName = process.ProcessName;
                     var windowTitle = process.MainWindowTitle;
 
-
                     if (!string.IsNullOrWhiteSpace(windowTitle))
                     {
                         if (_globalVariables.Cheats.Any(s => processName.IndexOf(s, StringComparison.OrdinalIgnoreCase) >= 0) || _globalVariables.Cheats.Any(s => windowTitle.IndexOf(s, StringComparison.OrdinalIgnoreCase) >= 0))
                         {
                             killedProcess.Add(process.ProcessName);
-                            try { process.Kill(); } catch { try { SendMessage(process.MainWindowHandle.ToInt32(), 0x0112, 0xF060, 0); } catch { } }
+                            process.KillGorm();
                         }
                         else { controlledProcess++; }
                     }
@@ -372,7 +363,7 @@ namespace Launcher
                         if (_globalVariables.Cheats.Any(s => processName.IndexOf(s, StringComparison.OrdinalIgnoreCase) >= 0))
                         {
                             killedProcess.Add(process.ProcessName);
-                            try { process.Kill(); } catch { try { SendMessage(process.MainWindowHandle.ToInt32(), 0x0112, 0xF060, 0); } catch { } }
+                            process.KillGorm();
                         }
                         else { controlledProcess++; }
                     }
@@ -380,20 +371,24 @@ namespace Launcher
 
                 if (killedProcess.Any())
                 {
-                    FivemManager.KillFivem();
-
                     if (!string.IsNullOrEmpty(_steamHex))
                     {
-                        var task = LauncherAPIManager.ReportCheat(ServerUpdateURL, _steamHex, string.Join(";", killedProcess));
+                        var task = LauncherAPIManager.ReportCheat(ServerUpdateURL, _steamHex, string.Join("; ", killedProcess));
                     }
 
-                    ShowError("Bilgisayarınızda hile programı çalıştığı tespit edildi.");
-                    Console.WriteLine(string.Join(",", killedProcess));
-                }
-
-                if (controlledProcess == 0)
-                {
                     FivemManager.KillFivem();
+
+                    ShowError("Bilgisayarınızda hile programı çalıştığı tespit edildi.");
+                }
+                else if (controlledProcess == 0)
+                {
+                    if (!string.IsNullOrEmpty(_steamHex))
+                    {
+                        var task = LauncherAPIManager.ReportCheat(ServerUpdateURL, _steamHex, "Access Denied");
+                    }
+
+                    FivemManager.KillFivem();
+
                     ShowError("Bilgisayarınız anti-hile taramasına izin vermiyor.");
                 }
             });
@@ -410,6 +405,7 @@ namespace Launcher
 
                 if (status == "-4")
                 {
+                    var task = LauncherAPIManager.SetStatus(ServerUpdateURL, _steamHex, "0");
                     FivemManager.KillFivem();
                 }
                 else
@@ -428,11 +424,9 @@ namespace Launcher
                 {
                     using (var webClient = new WebClient())
                     {
-                        webClient.DownloadStringTaskAsync(new Uri(ServerOnlineURL))
-                            .ContinueWith(task =>
-                            {
-                                Dispatcher.Invoke(delegate { LblOnline.Content = $"Online: {task.Result}"; });
-                            });
+                        webClient
+                            .DownloadStringTaskAsync(new Uri(ServerOnlineURL))
+                            .ContinueWith(task => { Dispatcher.Invoke(delegate { LblOnline.Content = $"Online: {task.Result}"; }); });
                     }
                 }
                 catch
@@ -463,33 +457,29 @@ namespace Launcher
 
             Task.Run(() => LauncherAPIManager.SetStatus(ServerUpdateURL, _steamHex, "1")).ContinueWith(task =>
             {
-                if (task.Result == "1")
+                switch (task.Result)
                 {
-                    GetSteamHex().ContinueWith(StartFivem);
-                }
-                else if (task.Result == "0")
-                {
-                    MessageBox.Show("Sunucu kaydın yapılamadı. Yöneticiye başvur. Code: 0", MessageTitle, MessageBoxButton.OK, MessageBoxImage.Error);
-                }
-                else if (task.Result == "-1")
-                {
-                    MessageBox.Show("Şu an oyunda gözüküyorsun. Tekrar bağlanamazsın.", MessageTitle, MessageBoxButton.OK, MessageBoxImage.Error);
-                }
-                else if (task.Result == "-3")
-                {
-                    MessageBox.Show("Sunucunun izinli listesine (whitelist) ekli değilsin.", MessageTitle, MessageBoxButton.OK, MessageBoxImage.Error);
-                }
-                else if (task.Result == "-4")
-                {
-                    MessageBox.Show("Oyundan yeni çıktın ve kontrollerin devam ediyor. 1 dk sonra tekrar bağlanabilirsin.", MessageTitle, MessageBoxButton.OK, MessageBoxImage.Error);
-                }
-                else if (task.Result == "-5")
-                {
-                    MessageBox.Show("Daha önce hile olarak işaretlendiğin için bir yönetici seni onaylayana kadar oyuna bağlanamazsın.", MessageTitle, MessageBoxButton.OK, MessageBoxImage.Error);
-                }
-                else
-                {
-                    MessageBox.Show($"Sunucu kaydın yapılamadı. Daha sonra tekrar deneyin. Code: {task.Result}", MessageTitle, MessageBoxButton.OK, MessageBoxImage.Error);
+                    case "0":
+                        ShowError("Sunucu kaydın yapılamadı. Yöneticiye başvur. Code: 0", false);
+                        break;
+                    case "1":
+                        GetSteamHex().ContinueWith(StartFivem);
+                        break;
+                    case "-1":
+                        ShowError("Şu an oyunda gözüküyorsun. Tekrar bağlanamazsın. Code: -1", false);
+                        break;
+                    case "-3":
+                        ShowError("Sunucunun izinli listesine (whitelist) ekli değilsin. Code: -3", false);
+                        break;
+                    case "-4":
+                        ShowError("Oyundan yeni çıktın ve kontrollerin devam ediyor. 1 dk sonra tekrar bağlanabilirsin. Code: -4", false);
+                        break;
+                    case "-5":
+                        ShowError("Daha önce hile olarak işaretlendiğin için bir yönetici seni onaylayana kadar oyuna bağlanamazsın. Code: -5", false);
+                        break;
+                    default:
+                        ShowError($"Sunucu kaydın yapılamadı. Daha sonra tekrar deneyin. Code: {task.Result}", false);
+                        break;
                 }
             });
         }
@@ -501,6 +491,7 @@ namespace Launcher
             if (string.IsNullOrEmpty(task.Result)) { ShowError("Steam bilgileri okunurken hata oluştu."); }
 
             BtnLaunch.IsEnabled = false;
+            Visibility = Visibility.Hidden;
 
             if (!_timerSetOnline.IsEnabled) _timerSetOnline.Start();
 
@@ -509,17 +500,28 @@ namespace Launcher
             Task.Run(() =>
             {
                 var process = Process.Start($"fivem://connect/{(_isLocal ? "localhost:30120" : _globalVariables.Server)}", "-gormya");
-                process?.WaitForExit();
+                if (process == null) return;
+
+                _timerCheats.Stop();
+                _timerCheats.Interval = new TimeSpan(0, 0, 0, 61);
+                _timerCheats.Start();
+                process.WaitForExit();
             }).ContinueWith(FivemStopped);
         }
 
         private void FivemStopped(Task task)
         {
-            if (!Dispatcher.CheckAccess()) { Dispatcher.Invoke(delegate { FivemStopped(task); }); return; }
+            if (!Dispatcher.CheckAccess()) { Dispatcher.Invoke(delegate { FivemStopped(null); }); return; }
 
-            Task.Run(() => LauncherAPIManager.SetStatus(ServerUpdateURL, _steamHex, "0"));
+            var status = LauncherAPIManager.SetStatus(ServerUpdateURL, _steamHex, "0");
 
             BtnLaunch.IsEnabled = true;
+            Visibility = Visibility.Visible;
+            Focus();
+
+            _timerCheats.Stop();
+            _timerCheats.Interval = new TimeSpan(0, 0, 0, 60);
+            _timerCheats.Start();
 
             if (_timerSetOnline.IsEnabled) _timerSetOnline.Stop();
 
@@ -537,6 +539,7 @@ namespace Launcher
                 }
             }
 
+            var status = LauncherAPIManager.SetStatus(ServerUpdateURL, _steamHex, "0");
             FivemManager.KillFivem();
         }
     }

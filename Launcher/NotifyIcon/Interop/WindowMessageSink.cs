@@ -21,10 +21,8 @@
 //
 // THIS COPYRIGHT NOTICE MAY NOT BE REMOVED FROM THIS FILE
 
-
 using System;
 using System.ComponentModel;
-using System.Diagnostics;
 
 namespace Launcher.NotifyIcon.Interop
 {
@@ -92,7 +90,7 @@ namespace Launcher.NotifyIcon.Interop
         /// Fired in case the user clicked or moved within
         /// the taskbar icon area.
         /// </summary>
-        public event Action<Launcher.NotifyIcon.Interop.MouseEvent> MouseEventReceived;
+        public event Action<MouseEvent> MouseEventReceived;
 
         /// <summary>
         /// Fired if a balloon ToolTip was either displayed
@@ -223,99 +221,85 @@ namespace Launcher.NotifyIcon.Interop
         /// <param name="lParam">Provides information about the event.</param>
         private void ProcessWindowMessage(uint msg, IntPtr wParam, IntPtr lParam)
         {
+            // TODO: Gereksiz eventlar kapatıldı
             if (msg != CallbackMessageId) return;
 
             var message = (WindowsMessages) lParam.ToInt32();
-            Debug.WriteLine("Got message " + message);
-            switch (message)
-            {
-                case WindowsMessages.WM_CONTEXTMENU:
-                    // TODO: Handle WM_CONTEXTMENU, see https://docs.microsoft.com/en-us/windows/win32/api/shellapi/nf-shellapi-shell_notifyiconw
-                    Debug.WriteLine("Unhandled WM_CONTEXTMENU");
-                    break;
+            if (message != WindowsMessages.WM_LBUTTONDBLCLK) return;
 
-                case WindowsMessages.WM_MOUSEMOVE:
-                    MouseEventReceived?.Invoke(Launcher.NotifyIcon.Interop.MouseEvent.MouseMove);
-                    break;
-
-                case WindowsMessages.WM_LBUTTONDOWN:
-                    MouseEventReceived?.Invoke(Launcher.NotifyIcon.Interop.MouseEvent.IconLeftMouseDown);
-                    break;
-
-                case WindowsMessages.WM_LBUTTONUP:
-                    if (!isDoubleClick)
-                    {
-                        MouseEventReceived?.Invoke(Launcher.NotifyIcon.Interop.MouseEvent.IconLeftMouseUp);
-                    }
-                    isDoubleClick = false;
-                    break;
-
-                case WindowsMessages.WM_LBUTTONDBLCLK:
-                    isDoubleClick = true;
-                    MouseEventReceived?.Invoke(Launcher.NotifyIcon.Interop.MouseEvent.IconDoubleClick);
-                    break;
-
-                case WindowsMessages.WM_RBUTTONDOWN:
-                    MouseEventReceived?.Invoke(Launcher.NotifyIcon.Interop.MouseEvent.IconRightMouseDown);
-                    break;
-
-                case WindowsMessages.WM_RBUTTONUP:
-                    MouseEventReceived?.Invoke(Launcher.NotifyIcon.Interop.MouseEvent.IconRightMouseUp);
-                    break;
-
-                case WindowsMessages.WM_RBUTTONDBLCLK:
-                    //double click with right mouse button - do not trigger event
-                    break;
-
-                case WindowsMessages.WM_MBUTTONDOWN:
-                    MouseEventReceived?.Invoke(Launcher.NotifyIcon.Interop.MouseEvent.IconMiddleMouseDown);
-                    break;
-
-                case WindowsMessages.WM_MBUTTONUP:
-                    MouseEventReceived?.Invoke(Launcher.NotifyIcon.Interop.MouseEvent.IconMiddleMouseUp);
-                    break;
-
-                case WindowsMessages.WM_MBUTTONDBLCLK:
-                    //double click with middle mouse button - do not trigger event
-                    break;
-
-                case WindowsMessages.NIN_BALLOONSHOW:
-                    BalloonToolTipChanged?.Invoke(true);
-                    break;
-
-                case WindowsMessages.NIN_BALLOONHIDE:
-                case WindowsMessages.NIN_BALLOONTIMEOUT:
-                    BalloonToolTipChanged?.Invoke(false);
-                    break;
-
-                case WindowsMessages.NIN_BALLOONUSERCLICK:
-                    MouseEventReceived?.Invoke(Launcher.NotifyIcon.Interop.MouseEvent.BalloonToolTipClicked);
-                    break;
-
-                case WindowsMessages.NIN_POPUPOPEN:
-                    ChangeToolTipStateRequest?.Invoke(true);
-                    break;
-
-                case WindowsMessages.NIN_POPUPCLOSE:
-                    ChangeToolTipStateRequest?.Invoke(false);
-                    break;
-
-                case WindowsMessages.NIN_SELECT:
-                    // TODO: Handle NIN_SELECT see https://docs.microsoft.com/en-us/windows/win32/api/shellapi/nf-shellapi-shell_notifyiconw
-                    Debug.WriteLine("Unhandled NIN_SELECT");
-                    break;
-
-                case WindowsMessages.NIN_KEYSELECT:
-                    // TODO: Handle NIN_KEYSELECT see https://docs.microsoft.com/en-us/windows/win32/api/shellapi/nf-shellapi-shell_notifyiconw
-                    Debug.WriteLine("Unhandled NIN_KEYSELECT");
-                    break;
-
-                default:
-                    Debug.WriteLine("Unhandled NotifyIcon message ID: " + lParam);
-                    break;
-            }
+            isDoubleClick = true;
+            MouseEventReceived?.Invoke(MouseEvent.IconDoubleClick);
+            //Debug.WriteLine("Got message " + message);
+            //switch (message)
+            //{
+            //    case WindowsMessages.WM_CONTEXTMENU:
+            //        // TODO: Handle WM_CONTEXTMENU, see https://docs.microsoft.com/en-us/windows/win32/api/shellapi/nf-shellapi-shell_notifyiconw
+            //        Debug.WriteLine("Unhandled WM_CONTEXTMENU");
+            //        break;
+            //    case WindowsMessages.WM_MOUSEMOVE:
+            //        MouseEventReceived?.Invoke(MouseEvent.MouseMove);
+            //        break;
+            //    case WindowsMessages.WM_LBUTTONDOWN:
+            //        MouseEventReceived?.Invoke(MouseEvent.IconLeftMouseDown);
+            //        break;
+            //    case WindowsMessages.WM_LBUTTONUP:
+            //        if (!isDoubleClick)
+            //        {
+            //            MouseEventReceived?.Invoke(MouseEvent.IconLeftMouseUp);
+            //        }
+            //        isDoubleClick = false;
+            //        break;
+            //    case WindowsMessages.WM_LBUTTONDBLCLK:
+            //        isDoubleClick = true;
+            //        MouseEventReceived?.Invoke(MouseEvent.IconDoubleClick);
+            //        break;
+            //    case WindowsMessages.WM_RBUTTONDOWN:
+            //        MouseEventReceived?.Invoke(MouseEvent.IconRightMouseDown);
+            //        break;
+            //    case WindowsMessages.WM_RBUTTONUP:
+            //        MouseEventReceived?.Invoke(MouseEvent.IconRightMouseUp);
+            //        break;
+            //    case WindowsMessages.WM_RBUTTONDBLCLK:
+            //        //double click with right mouse button - do not trigger event
+            //        break;
+            //    case WindowsMessages.WM_MBUTTONDOWN:
+            //        MouseEventReceived?.Invoke(MouseEvent.IconMiddleMouseDown);
+            //        break;
+            //    case WindowsMessages.WM_MBUTTONUP:
+            //        MouseEventReceived?.Invoke(MouseEvent.IconMiddleMouseUp);
+            //        break;
+            //    case WindowsMessages.WM_MBUTTONDBLCLK:
+            //        //double click with middle mouse button - do not trigger event
+            //        break;
+            //    case WindowsMessages.NIN_BALLOONSHOW:
+            //        BalloonToolTipChanged?.Invoke(true);
+            //        break;
+            //    case WindowsMessages.NIN_BALLOONHIDE:
+            //    case WindowsMessages.NIN_BALLOONTIMEOUT:
+            //        BalloonToolTipChanged?.Invoke(false);
+            //        break;
+            //    case WindowsMessages.NIN_BALLOONUSERCLICK:
+            //        MouseEventReceived?.Invoke(MouseEvent.BalloonToolTipClicked);
+            //        break;
+            //    case WindowsMessages.NIN_POPUPOPEN:
+            //        ChangeToolTipStateRequest?.Invoke(true);
+            //        break;
+            //    case WindowsMessages.NIN_POPUPCLOSE:
+            //        ChangeToolTipStateRequest?.Invoke(false);
+            //        break;
+            //    case WindowsMessages.NIN_SELECT:
+            //        // TODO: Handle NIN_SELECT see https://docs.microsoft.com/en-us/windows/win32/api/shellapi/nf-shellapi-shell_notifyiconw
+            //        Debug.WriteLine("Unhandled NIN_SELECT");
+            //        break;
+            //    case WindowsMessages.NIN_KEYSELECT:
+            //        // TODO: Handle NIN_KEYSELECT see https://docs.microsoft.com/en-us/windows/win32/api/shellapi/nf-shellapi-shell_notifyiconw
+            //        Debug.WriteLine("Unhandled NIN_KEYSELECT");
+            //        break;
+            //    default:
+            //        Debug.WriteLine("Unhandled NotifyIcon message ID: " + lParam);
+            //        break;
+            //}
         }
-
         #endregion
 
         #region Dispose
