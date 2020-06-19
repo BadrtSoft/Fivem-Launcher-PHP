@@ -13,7 +13,6 @@ $use_whitelist = false; // Whitelist icin LauncherStatuses tablosunu kullanacaks
 $fivem_server  = "127.0.0.1:30120"; // fivem server ip adresi
 $discord       = "https://discord.gg/e9URnEe"; // discord sunucu adresiniz (bos birakilirsa launcherda discord butonu gizlenir)
 $teamspeak3    = ""; // teamspeak3 sunucu adresiniz (bos birakilirsa launcherda teamspeak butonu gizlenir)
-$fivem_code    = ""; // fivem server codenuz (bos birakilirsa launcherda online kisi sayisi gizlenir)
 
 // Launcher icerisindeki updater ile ilgili bilgiler
 $exe_version = "2020.6.17.2128"; // launcher sag tiklayip ozelliklerde yazan surum numarasi exe ile bu tutmadiginda update_file indirilip kurulur

@@ -5,8 +5,10 @@ if (empty($_GET['id'])){
 	die('{ "error": "id bos olamaz" }');
 }
 
-$url = 'http://api.steampowered.com/ISteamUser/GetPlayerSummaries/v0002/?key=' . $steam_api_key . '&steamids=' . $_GET['id'];
- 
+$steamid = $_GET['id'];
+
+$url = 'http://api.steampowered.com/ISteamUser/GetPlayerSummaries/v0002/?key=' . $steam_api_key . '&steamids=' . $steamid;
+
 $contents = file_get_contents($url);
 
 if($contents !== false){

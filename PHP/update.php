@@ -8,7 +8,6 @@ require 'ayarlar.php';
 	"server": "<?=$fivem_server?>", 
 	"discord": "<?=$discord?>", 
 	"teamspeak3": "<?=$teamspeak3?>", 
-	"server_code": "<?=$fivem_code?>",
 	"cheats": [
 		"2take1free",
 		"cheat engine", "cheatengine",
@@ -25,7 +24,6 @@ require 'ayarlar.php';
 		"renamenu",
 		"roblox player", "robloxplayer",
 		"root",
-		"taskmgr", "task manager", "taskmanager",
 		"memoscope",
 		"proc dump", "procdump",
 		"process explorer", "processexplorer",
