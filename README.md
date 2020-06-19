@@ -33,4 +33,3 @@
   
   
 Discord: [https://discord.gg/e9URnEe](https://discord.gg/e9URnEe)  
-[![Coverage Status](https://coveralls.io/repos/github/GormYa/Fivem-Launcher/badge.svg)](https://coveralls.io/github/GormYa/Fivem-Launcher)
