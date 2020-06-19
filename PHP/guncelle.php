@@ -5,7 +5,7 @@ if (empty($_GET['steamid']) || empty($_GET['durum'])){
 	die("-2");
 }
 
-$cheat = $_GET['cheat'];
+$cheat = '';
 $steamid = $_GET['steamid'];
 $durum = $_GET['durum'];
 
@@ -46,7 +46,8 @@ if (mysqli_connect_errno()) {
 					
 					echo("-5");
 				} else {
-					if (!empty($cheat)) {
+					if (!empty($_GET['cheat'])) {
+						$cheat = $_GET['cheat'];
 						$query = $conn->prepare("UPDATE LauncherStatuses SET login_date=?, status=?, cheat_name=? WHERE steamid=?");
 						$query->bind_param('ssss', date('Y-m-d H:i:s'), $durum, $cheat, $steamid);
 						$query->execute();
