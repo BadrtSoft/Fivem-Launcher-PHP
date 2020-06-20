@@ -4,5 +4,5 @@
 using System.Reflection;
 using System.Runtime.InteropServices;
 
-[assembly: AssemblyVersion("2020.6.17.2128")]
-[assembly: AssemblyFileVersion("2020.6.17.2128")]
+[assembly: AssemblyVersion("2020.6.20.25")]
+[assembly: AssemblyFileVersion("2020.6.20.25")]

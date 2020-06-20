@@ -15,7 +15,7 @@ $discord       = "https://discord.gg/e9URnEe"; // discord sunucu adresiniz (bos 
 $teamspeak3    = ""; // teamspeak3 sunucu adresiniz (bos birakilirsa launcherda teamspeak butonu gizlenir)
 
 // Launcher icerisindeki updater ile ilgili bilgiler
-$exe_version = "2020.6.17.2128"; // launcher sag tiklayip ozelliklerde yazan surum numarasi exe ile bu tutmadiginda update_file indirilip kurulur
+$exe_version = "2020.6.20.25"; // launcher sag tiklayip ozelliklerde yazan surum numarasi exe ile bu tutmadiginda update_file indirilip kurulur
 $update_file = "https://yalc.in/fivem_launcher/update.zip"; // surum numarasi tutmadiginda indirilecek dosyanin adresi
 
 // IP tespiti
