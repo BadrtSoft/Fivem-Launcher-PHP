@@ -1,6 +1,5 @@
 <?php
 $steam_api_key  = ""; // Steam Dev. API key yazınız
-$use_cloudflare = false; // PHP dosyalari cloudflare arkasinda calisacaksa (domain uzerinden) burayi true yapin
 
 // Veritabani ile ilgili bilgiler
 $db_addr = "127.0.0.1"; // mysql server adresi
@@ -19,8 +18,10 @@ $exe_version = "2020.6.20.25"; // launcher sag tiklayip ozelliklerde yazan surum
 $update_file = "https://yalc.in/fivem_launcher/update.zip"; // surum numarasi tutmadiginda indirilecek dosyanin adresi
 
 // IP tespiti
-$ip = $_SERVER['REMOTE_ADDR'];
-if ($use_cloudflare && isset($_SERVER['HTTP_CF_CONNECTING_IP'])){
+$ip = '';
+if (!empty($_SERVER['HTTP_CF_CONNECTING_IP'])){
 	$ip = $_SERVER['HTTP_CF_CONNECTING_IP'];
+} else {
+	$ip = $_SERVER['REMOTE_ADDR'];
 }
 ?>
