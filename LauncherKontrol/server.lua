@@ -55,8 +55,9 @@ AddEventHandler("playerDropped", OnPlayerDrop)
 
 RegisterServerEvent('LauncherKontrol:checkPlayer')
 AddEventHandler('LauncherKontrol:checkPlayer', function(playerId)
-	if source ~= nil then
-		local identifiers = GetPlayerIdentifiers(source)
+	local _source = source
+	if _source ~= nil then
+		local identifiers = GetPlayerIdentifiers(_source)
 		local hex
 		
 		for _, v in pairs(identifiers) do
@@ -67,15 +68,19 @@ AddEventHandler('LauncherKontrol:checkPlayer', function(playerId)
 		end
 		
 		PerformHttpRequest(kontrolAdresi..'?steamid='..hex, function(err, text, headers) 
-			if text == "-2" then
-				DropPlayer(source, 'Sunucumuzda yasaklısınız.')
-			elseif text == "-1" then
+			if text == "-1" then
+			elseif text == "-5" then
+				DropPlayer(_source, 'Hile kullandığınızdan dolayı sunucumuzda yasaklısınız.')
+			elseif text == "-4" then
+				DropPlayer(_source, 'Oyundan çıkış yapmışsınız.')
+			elseif text == "-3" then
+				DropPlayer(_source, 'Whiteliste ekli değilsiniz.')
 			elseif text == "0" then
-				DropPlayer(source, 'Sunucumuza girebilmek için launcher çalıştırmalısınız.')
+				DropPlayer(_source, 'Sunucumuza girebilmek için launcher çalıştırmalısınız.')
 			elseif text == "1" then
-				DropPlayer(source, 'Launcher kapatılmış.')
+				DropPlayer(_source, 'Launcher kapatılmış.')
 			else
-				DropPlayer(source, 'Whiteliste ekli değilsiniz.')
+				DropPlayer(_source, 'Bilinmeyen hata.')
 			end
 		end, 'GET', '', { ["Content-Type"] = 'application/json' })
 	end
