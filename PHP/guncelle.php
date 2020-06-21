@@ -13,6 +13,8 @@ if ($durum != '-5' && $durum != '-4' && $durum != '-1' && $durum != '0' && $duru
 	die("-2");
 }
 
+$date = date('Y-m-d H:i:s');
+
 $conn = new mysqli($db_addr, $db_user, $db_pass, $db_name);
 if (mysqli_connect_errno()) {
 	die("-2");
@@ -29,7 +31,7 @@ if (mysqli_connect_errno()) {
 				echo "-3";
 			} else {
 				$query = $conn->prepare("INSERT INTO LauncherStatuses (`steamid`, `login_date`, `ip_address`, `status`) VALUES (?, ?, ?, ?)");
-				$query->bind_param('ssss', $steamid, date('Y-m-d H:i:s'), $ip, $durum);
+				$query->bind_param('ssss', $steamid, $date, $ip, $durum);
 				$query->execute();
 				$query->close();
 				
@@ -40,7 +42,7 @@ if (mysqli_connect_errno()) {
 			if ($status == -1 || $status == -4 || $status == 0 || $status == -5) {
 				if ($status == -5) {
 					$query = $conn->prepare("UPDATE LauncherStatuses SET login_date=? WHERE steamid=?");
-					$query->bind_param('ss', date('Y-m-d H:i:s'), $steamid);
+					$query->bind_param('ss', $date, $steamid);
 					$query->execute();
 					$query->close();
 					
@@ -49,12 +51,12 @@ if (mysqli_connect_errno()) {
 					if (!empty($_GET['cheat'])) {
 						$cheat = $_GET['cheat'];
 						$query = $conn->prepare("UPDATE LauncherStatuses SET login_date=?, status=?, cheat_name=? WHERE steamid=?");
-						$query->bind_param('ssss', date('Y-m-d H:i:s'), $durum, $cheat, $steamid);
+						$query->bind_param('ssss', $date, $durum, $cheat, $steamid);
 						$query->execute();
 						$query->close();
 					} else {
 						$query = $conn->prepare("UPDATE LauncherStatuses SET login_date=?, status=? WHERE steamid=?");
-						$query->bind_param('sss', date('Y-m-d H:i:s'), $durum, $steamid);
+						$query->bind_param('sss', $date, $durum, $steamid);
 						$query->execute();
 						$query->close();
 					}
@@ -63,7 +65,7 @@ if (mysqli_connect_errno()) {
 				}
 			} else {
 				$query = $conn->prepare("UPDATE LauncherStatuses SET login_date=?, ip_address=?, status=? WHERE steamid=?");
-				$query->bind_param('ssss', date('Y-m-d H:i:s'), $ip, $durum, $steamid);
+				$query->bind_param('ssss', $date, $ip, $durum, $steamid);
 				$query->execute();
 				$query->close();
 				echo $durum;
