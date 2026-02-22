@@ -30,3 +30,5 @@
 - PHP tarafında discord webhook bildirimleri için fonksiyon oluşturulması  
 - Değişkenlerin yönetimi için web panel  
 - C# tarafına duyuru gönderilmesi için web panel  
+
+update soon
